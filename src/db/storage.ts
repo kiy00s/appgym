@@ -1,0 +1,312 @@
+import {
+  Exercise,
+  WorkoutSession,
+  ExerciseStats,
+  ExerciseHistoryEntry,
+  SetType,
+  WorkoutExerciseWithDetails,
+} from '../types/workout';
+import { DEFAULT_EXERCISES } from '../constants/defaultExercises';
+import { calculate1RM, calculateVolume } from '../utils/calculations';
+
+const STORAGE_KEYS = {
+  EXERCISES: 'gym_exercises_v1',
+  WORKOUTS: 'gym_workouts_v1',
+  ACTIVE_WORKOUT: 'gym_active_workout_v1',
+};
+
+// Initialize default exercises if not present
+function initializeStorage(): void {
+  try {
+    const storedExercises = localStorage.getItem(STORAGE_KEYS.EXERCISES);
+    if (!storedExercises) {
+      const initialExercises: Exercise[] = DEFAULT_EXERCISES.map((ex, idx) => ({
+        id: idx + 1,
+        name: ex.name,
+        category: ex.category,
+        equipment: ex.equipment,
+        isCustom: false,
+        notes: null,
+      }));
+      localStorage.setItem(STORAGE_KEYS.EXERCISES, JSON.stringify(initialExercises));
+    }
+  } catch (e) {
+    console.error('Storage initialization failed:', e);
+  }
+}
+
+// Ensure storage is initialized on module load
+initializeStorage();
+
+export function getExercises(filter?: { search?: string; category?: string }): Exercise[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.EXERCISES);
+    let list: Exercise[] = raw ? JSON.parse(raw) : [];
+
+    if (filter?.category && filter.category !== 'Wszystkie') {
+      list = list.filter((e) => e.category === filter.category);
+    }
+
+    if (filter?.search && filter.search.trim()) {
+      const q = filter.search.toLowerCase().trim();
+      list = list.filter((e) => e.name.toLowerCase().includes(q));
+    }
+
+    return list.sort((a, b) => {
+      if (a.isCustom !== b.isCustom) return a.isCustom ? -1 : 1;
+      return a.name.localeCompare(b.name, 'pl');
+    });
+  } catch {
+    return [];
+  }
+}
+
+export function getExerciseById(id: number): Exercise | undefined {
+  const all = getExercises();
+  return all.find((e) => e.id === id);
+}
+
+export function addCustomExercise(data: {
+  name: string;
+  category: string;
+  equipment: string;
+  notes?: string;
+}): Exercise {
+  const all = getExercises();
+  const newId = all.reduce((max, e) => Math.max(max, e.id), 0) + 1;
+
+  const newExercise: Exercise = {
+    id: newId,
+    name: data.name.trim(),
+    category: data.category,
+    equipment: data.equipment,
+    isCustom: true,
+    notes: data.notes?.trim() || null,
+  };
+
+  all.push(newExercise);
+  localStorage.setItem(STORAGE_KEYS.EXERCISES, JSON.stringify(all));
+  return newExercise;
+}
+
+export function deleteCustomExercise(id: number): void {
+  const all = getExercises().filter((e) => !(e.id === id && e.isCustom));
+  localStorage.setItem(STORAGE_KEYS.EXERCISES, JSON.stringify(all));
+}
+
+export function getCompletedWorkouts(): WorkoutSession[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.WORKOUTS);
+    const workouts: WorkoutSession[] = raw ? JSON.parse(raw) : [];
+    return workouts.sort(
+      (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function getWorkoutById(id: number): WorkoutSession | undefined {
+  const all = getCompletedWorkouts();
+  return all.find((w) => w.id === id);
+}
+
+export function deleteWorkout(id: number): void {
+  const all = getCompletedWorkouts().filter((w) => w.id !== id);
+  localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(all));
+}
+
+export function getLastPerformance(
+  exerciseId: number
+): { date: string; sets: { weight: number; reps: number; setType: SetType }[] } | null {
+  const workouts = getCompletedWorkouts();
+  for (const w of workouts) {
+    const ex = w.exercises?.find((e) => e.exerciseId === exerciseId);
+    if (ex && ex.sets.some((s) => s.isCompleted)) {
+      return {
+        date: w.startTime,
+        sets: ex.sets
+          .filter((s) => s.isCompleted)
+          .map((s) => ({
+            weight: s.weight,
+            reps: s.reps,
+            setType: s.setType,
+          })),
+      };
+    }
+  }
+  return null;
+}
+
+export function getExerciseStats(exerciseId: number): ExerciseStats {
+  const workouts = getCompletedWorkouts();
+  let personalRecord = 0;
+  let estimated1RMMax = 0;
+  let totalSets = 0;
+  const history: ExerciseHistoryEntry[] = [];
+
+  for (const w of workouts) {
+    const ex = w.exercises?.find((e) => e.exerciseId === exerciseId);
+    if (!ex) continue;
+
+    const completed = ex.sets.filter((s) => s.isCompleted);
+    if (completed.length === 0) continue;
+
+    totalSets += completed.length;
+    let sessionMax = 0;
+    let session1RM = 0;
+    let sessionVolume = 0;
+
+    for (const s of completed) {
+      if (s.weight > personalRecord) personalRecord = s.weight;
+      if (s.weight > sessionMax) sessionMax = s.weight;
+
+      const e1rm = calculate1RM(s.weight, s.reps);
+      if (e1rm > estimated1RMMax) estimated1RMMax = e1rm;
+      if (e1rm > session1RM) session1RM = e1rm;
+
+      sessionVolume += s.weight * s.reps;
+    }
+
+    history.push({
+      workoutId: w.id,
+      workoutTitle: w.title,
+      date: w.startTime,
+      maxWeight: sessionMax,
+      estimated1RM: session1RM,
+      totalVolume: sessionVolume,
+      sets: completed.map((s) => ({
+        setNumber: s.setNumber,
+        weight: s.weight,
+        reps: s.reps,
+        setType: s.setType,
+      })),
+    });
+  }
+
+  return {
+    personalRecord,
+    estimated1RMMax,
+    totalWorkouts: history.length,
+    totalSets,
+    history,
+  };
+}
+
+export function getDashboardStats(): {
+  totalWorkouts: number;
+  totalVolumeKg: number;
+  workoutsThisMonth: number;
+} {
+  const workouts = getCompletedWorkouts();
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  let totalVolumeKg = 0;
+  let workoutsThisMonth = 0;
+
+  for (const w of workouts) {
+    if (w.exercises) {
+      for (const ex of w.exercises) {
+        totalVolumeKg += calculateVolume(ex.sets);
+      }
+    }
+    if (new Date(w.startTime) >= startOfMonth) {
+      workoutsThisMonth += 1;
+    }
+  }
+
+  return {
+    totalWorkouts: workouts.length,
+    totalVolumeKg: Math.round(totalVolumeKg),
+    workoutsThisMonth,
+  };
+}
+
+export function getActiveWorkout(): WorkoutSession | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveActiveWorkout(workout: WorkoutSession | null): void {
+  try {
+    if (workout) {
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(workout));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+    }
+  } catch (e) {
+    console.error('Failed to save active workout:', e);
+  }
+}
+
+export function finishActiveWorkout(notes?: string): WorkoutSession | null {
+  const active = getActiveWorkout();
+  if (!active) return null;
+
+  const completed: WorkoutSession = {
+    ...active,
+    status: 'completed',
+    endTime: new Date().toISOString(),
+    notes: notes?.trim() || null,
+  };
+
+  const workouts = getCompletedWorkouts();
+  workouts.unshift(completed);
+  localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(workouts));
+  saveActiveWorkout(null);
+
+  return completed;
+}
+
+export function cancelActiveWorkout(): void {
+  saveActiveWorkout(null);
+}
+
+export function createNewWorkout(title?: string): WorkoutSession {
+  const dateStr = new Date().toLocaleDateString('pl-PL', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'numeric',
+  });
+  const workout: WorkoutSession = {
+    id: Date.now(),
+    title: title?.trim() || `Trening ${dateStr}`,
+    startTime: new Date().toISOString(),
+    status: 'in_progress',
+    exercises: [],
+  };
+
+  saveActiveWorkout(workout);
+  return workout;
+}
+
+export function exportBackupJSON(): string {
+  const data = {
+    exercises: getExercises(),
+    workouts: getCompletedWorkouts(),
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+export function importBackupJSON(jsonStr: string): boolean {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    if (Array.isArray(parsed.exercises)) {
+      localStorage.setItem(STORAGE_KEYS.EXERCISES, JSON.stringify(parsed.exercises));
+    }
+    if (Array.isArray(parsed.workouts)) {
+      localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(parsed.workouts));
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}

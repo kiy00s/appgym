@@ -1,0 +1,18 @@
+{
+  "name": "GymTracker",
+  "short_name": "GymTracker",
+  "description": "Śledzenie postępów na siłowni w 100% offline",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D0E12",
+  "theme_color": "#0D0E12",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

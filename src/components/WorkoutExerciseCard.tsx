@@ -1,0 +1,142 @@
+import React from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { WorkoutExerciseWithDetails } from '../types/workout';
+import { SetRow } from './SetRow';
+import { useWorkout } from '../context/WorkoutContext';
+
+interface WorkoutExerciseCardProps {
+  item: WorkoutExerciseWithDetails;
+  onSelectExercise: (exerciseId: number) => void;
+}
+
+export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
+  item,
+  onSelectExercise,
+}) => {
+  const { removeExercise, addSet, updateSet, removeSet, toggleSetCompleted } = useWorkout();
+
+  return (
+    <div
+      style={{
+        backgroundColor: '#191C24',
+        border: '1px solid #282C37',
+        borderRadius: '14px',
+        padding: '16px',
+        marginBottom: '14px',
+      }}
+    >
+      {/* Exercise Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '14px',
+        }}
+      >
+        <div
+          onClick={() => onSelectExercise(item.exercise.id)}
+          style={{ cursor: 'pointer', flex: 1, marginRight: '10px' }}
+        >
+          <div
+            style={{
+              fontSize: '17px',
+              fontWeight: 800,
+              color: '#F3F4F6',
+              marginBottom: '4px',
+            }}
+          >
+            {item.exercise.name}
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <span className="badge-pill">{item.exercise.category}</span>
+            <span className="badge-pill">{item.exercise.equipment}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm(`Czy na pewno usunąć "${item.exercise.name}" z tego treningu?`)) {
+              removeExercise(item.id);
+            }
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#EF4444',
+            cursor: 'pointer',
+            padding: '6px',
+          }}
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+
+      {/* Table Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '6px 4px',
+          borderBottom: '1px solid #232733',
+          marginBottom: '6px',
+          fontSize: '11px',
+          fontWeight: 800,
+          color: '#6B7280',
+          letterSpacing: '0.5px',
+        }}
+      >
+        <div style={{ width: '32px', textAlign: 'center' }}>SERIA</div>
+        <div style={{ flex: 1.3, textAlign: 'center' }}>POPRZEDNIO</div>
+        <div style={{ flex: 1.1, textAlign: 'center' }}>KG</div>
+        <div style={{ flex: 1.1, textAlign: 'center' }}>POWT</div>
+        <div style={{ width: '34px', textAlign: 'center', marginLeft: '4px' }}>STATUS</div>
+        <div style={{ width: '28px' }}></div>
+      </div>
+
+      {/* Sets */}
+      {item.sets.map((set, idx) => {
+        const lastPerfSet = item.lastPerformance?.sets[idx];
+        const prevText = lastPerfSet
+          ? `${lastPerfSet.weight}kg × ${lastPerfSet.reps}`
+          : undefined;
+
+        return (
+          <SetRow
+            key={set.id ?? idx}
+            set={set}
+            previousPerformanceText={prevText}
+            onUpdate={(fields) => set.id && updateSet(item.id, set.id, fields)}
+            onDelete={() => set.id && removeSet(item.id, set.id)}
+            onToggleComplete={() => set.id && toggleSetCompleted(item.id, set.id)}
+          />
+        );
+      })}
+
+      {/* Add Set Button */}
+      <button
+        type="button"
+        onClick={() => addSet(item.id)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          backgroundColor: '#20242D',
+          color: '#10B981',
+          border: '1px solid #232733',
+          borderRadius: '10px',
+          padding: '10px',
+          marginTop: '10px',
+          fontWeight: 700,
+          fontSize: '13px',
+          cursor: 'pointer',
+        }}
+      >
+        <Plus size={16} /> Dodaj serię
+      </button>
+    </div>
+  );
+};

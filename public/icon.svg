@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#16181F"/>
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="#0D0E12" stroke="#282C37" stroke-width="8"/>
+  <g transform="translate(100, 100) scale(0.61)">
+    <!-- Dumbbell Bar -->
+    <rect x="156" y="236" width="200" height="40" rx="8" fill="#F3F4F6"/>
+    <!-- Center Grip ridges -->
+    <rect x="220" y="232" width="72" height="48" rx="4" fill="#10B981"/>
+    <!-- Left Inner Collar -->
+    <rect x="140" y="216" width="20" height="80" rx="6" fill="#059669"/>
+    <!-- Right Inner Collar -->
+    <rect x="352" y="216" width="20" height="80" rx="6" fill="#059669"/>
+    <!-- Left Main Plate -->
+    <rect x="96" y="166" width="44" height="180" rx="14" fill="#10B981"/>
+    <!-- Right Main Plate -->
+    <rect x="372" y="166" width="44" height="180" rx="14" fill="#10B981"/>
+    <!-- Left Outer Plate -->
+    <rect x="52" y="196" width="36" height="120" rx="10" fill="#34D399"/>
+    <!-- Right Outer Plate -->
+    <rect x="424" y="196" width="36" height="120" rx="10" fill="#34D399"/>
+    <!-- Left End Nut -->
+    <rect x="36" y="236" width="16" height="40" rx="4" fill="#F3F4F6"/>
+    <!-- Right End Nut -->
+    <rect x="460" y="236" width="16" height="40" rx="4" fill="#F3F4F6"/>
+  </g>
+</svg>
