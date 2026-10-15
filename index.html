@@ -21,11 +21,31 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Register offline service worker if supported
+      // Register offline service worker with automatic update detection
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js').catch((err) => {
-            console.log('SW registration skipped:', err);
+          navigator.serviceWorker
+            .register('./sw.js')
+            .then((reg) => {
+              // Check for SW updates every time the app opens or gains focus
+              reg.update();
+              document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                  reg.update();
+                }
+              });
+            })
+            .catch((err) => {
+              console.log('SW registration skipped:', err);
+            });
+
+          // Reload seamlessly when new service worker takes over
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
           });
         });
       }
