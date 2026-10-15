@@ -15,6 +15,7 @@ const CATEGORIES = [
 
 interface ExercisePickerModalProps {
   isOpen: boolean;
+  zIndex?: number;
   onClose: () => void;
   onSelectExercise: (exerciseId: number) => void;
   onOpenCreateNew: () => void;
@@ -22,6 +23,7 @@ interface ExercisePickerModalProps {
 
 export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
   isOpen,
+  zIndex,
   onClose,
   onSelectExercise,
   onOpenCreateNew,
@@ -37,7 +39,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
   });
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" style={{ zIndex: zIndex || 110 }}>
       <div className="modal-header">
         <button
           type="button"

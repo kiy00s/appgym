@@ -15,6 +15,7 @@ import {
   Edit3,
   Trash2,
   RotateCw,
+  Settings,
 } from 'lucide-react';
 import { useWorkout } from './context/WorkoutContext';
 import {
@@ -52,6 +53,7 @@ export const App: React.FC = () => {
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Exercises screen state
   const [exerciseSearch, setExerciseSearch] = useState('');
@@ -200,68 +202,144 @@ export const App: React.FC = () => {
           <h1>GymTracker</h1>
         </div>
 
-        <div style={{ display: 'flex', gap: '6px' }}>
+        {/* Settings Gear Dropdown */}
+        <div style={{ position: 'relative' }}>
           <button
             type="button"
-            onClick={handleForceRefresh}
-            title="Refresh app & check for updates"
+            onClick={() => setIsSettingsOpen((prev) => !prev)}
+            title="Settings & Tools"
             style={{
-              background: 'none',
-              border: '1px solid #232733',
-              borderRadius: '8px',
-              color: '#9CA3AF',
-              padding: '6px 8px',
+              background: isSettingsOpen ? '#20242D' : '#16181F',
+              border: '1px solid #282C37',
+              borderRadius: '9px',
+              color: isSettingsOpen ? '#F3F4F6' : '#9CA3AF',
+              width: '36px',
+              height: '36px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
+              justifyContent: 'center',
+              transition: 'background-color 0.15s, color 0.15s',
             }}
           >
-            <RotateCw size={13} className={isRefreshing ? 'spin-icon' : ''} />
-            Update
+            <Settings size={18} />
           </button>
-          <button
-            type="button"
-            onClick={handleExportBackup}
-            title="Download Backup (JSON)"
-            style={{
-              background: 'none',
-              border: '1px solid #232733',
-              borderRadius: '8px',
-              color: '#9CA3AF',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}
-          >
-            <Download size={14} /> Backup
-          </button>
-          <button
-            type="button"
-            onClick={handleImportBackup}
-            title="Upload Backup (JSON)"
-            style={{
-              background: 'none',
-              border: '1px solid #232733',
-              borderRadius: '8px',
-              color: '#9CA3AF',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}
-          >
-            <Upload size={14} />
-          </button>
+
+          {isSettingsOpen && (
+            <>
+              {/* Invisible backdrop to dismiss on tap outside */}
+              <div
+                onClick={() => setIsSettingsOpen(false)}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 80,
+                }}
+              />
+
+              {/* Settings Dropdown Card */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  width: '210px',
+                  backgroundColor: '#16181F',
+                  border: '1px solid #282C37',
+                  borderRadius: '12px',
+                  padding: '6px',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.6)',
+                  zIndex: 85,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSettingsOpen(false);
+                    handleForceRefresh();
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#F3F4F6',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
+                  className="dropdown-item"
+                >
+                  <RotateCw size={15} color="#10B981" className={isRefreshing ? 'spin-icon' : ''} />
+                  <span>Update App</span>
+                </button>
+
+                <div style={{ height: '1px', backgroundColor: '#232733', margin: '4px 0' }} />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSettingsOpen(false);
+                    handleExportBackup();
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#F3F4F6',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
+                  className="dropdown-item"
+                >
+                  <Download size={15} color="#06B6D4" />
+                  <span>Download Backup</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSettingsOpen(false);
+                    handleImportBackup();
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#F3F4F6',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
+                  className="dropdown-item"
+                >
+                  <Upload size={15} color="#F59E0B" />
+                  <span>Upload Backup</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -965,7 +1043,6 @@ export const App: React.FC = () => {
         routineId={editingRoutineId}
         onClose={() => setIsCreateRoutineOpen(false)}
         onSaved={() => refreshState()}
-        onOpenCreateExercise={() => setIsNewExerciseOpen(true)}
       />
 
       <ExerciseDetailModal

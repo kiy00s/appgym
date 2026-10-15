@@ -270,3 +270,12 @@ input, button, textarea {
   }
 }
 
+.dropdown-item {
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:active {
+  background-color: var(--bg-surface-light) !important;
+}
+
+

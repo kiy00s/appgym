@@ -25,12 +25,14 @@ const EQUIPMENTS: EquipmentType[] = [
 
 interface NewExerciseModalProps {
   isOpen: boolean;
+  zIndex?: number;
   onClose: () => void;
   onCreated: (exerciseId: number) => void;
 }
 
 export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
   isOpen,
+  zIndex,
   onClose,
   onCreated,
 }) => {
@@ -62,7 +64,7 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" style={{ zIndex: zIndex || 120 }}>
       <div className="modal-header">
         <button
           type="button"

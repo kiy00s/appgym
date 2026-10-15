@@ -3,6 +3,7 @@ import { X, Plus, Trash2, ArrowUp, ArrowDown, Dumbbell } from 'lucide-react';
 import { WorkoutRoutine } from '../types/workout';
 import { getExercises, getRoutineById, saveCustomRoutine } from '../db/storage';
 import { ExercisePickerModal } from './ExercisePickerModal';
+import { NewExerciseModal } from './NewExerciseModal';
 
 interface CreateRoutineModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
   const [description, setDescription] = useState('');
   const [exerciseIds, setExerciseIds] = useState<number[]>([]);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isNewExerciseOpen, setIsNewExerciseOpen] = useState(false);
 
   useEffect(() => {
     if (routineId) {
@@ -31,6 +33,8 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
         setTitle(routine.title);
         setDescription(routine.description || '');
         setExerciseIds(routine.exerciseIds || []);
+        setIsPickerOpen(false);
+        setIsNewExerciseOpen(false);
         return;
       }
     }
@@ -38,6 +42,8 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
     setTitle('');
     setDescription('');
     setExerciseIds([]);
+    setIsPickerOpen(false);
+    setIsNewExerciseOpen(false);
   }, [routineId, isOpen]);
 
   if (!isOpen) return null;
@@ -301,11 +307,22 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
 
       <ExercisePickerModal
         isOpen={isPickerOpen}
+        zIndex={110}
         onClose={() => setIsPickerOpen(false)}
         onSelectExercise={(id) => handleAddExercise(id)}
         onOpenCreateNew={() => {
           setIsPickerOpen(false);
-          if (onOpenCreateExercise) onOpenCreateExercise();
+          setIsNewExerciseOpen(true);
+        }}
+      />
+
+      <NewExerciseModal
+        isOpen={isNewExerciseOpen}
+        zIndex={120}
+        onClose={() => setIsNewExerciseOpen(false)}
+        onCreated={(newExerciseId) => {
+          handleAddExercise(newExerciseId);
+          setIsNewExerciseOpen(false);
         }}
       />
     </>
