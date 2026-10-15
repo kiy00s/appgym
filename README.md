@@ -1,70 +1,77 @@
-# GymTracker - Aplikacja na siłownię (PWA dla iOS / iPhone)
+# GymTracker - Offline-First Workout & Progressive Overload Tracker (PWA)
 
-Nowoczesna aplikacja webowa typu **PWA (Progressive Web App)** dedykowana treningom siłowym i progresywnemu przeciążaniu (*progressive overload*), stworzona w **React**, **Vite** i **TypeScript**.
+A lightweight, modern **Progressive Web App (PWA)** built with **React**, **Vite**, and **TypeScript**, designed for iPhone and mobile viewports.
 
-Działa w **100% offline**, instaluje się bezpośrednio na pulpicie iPhone'a przez Safari (bez App Store) i jest przygotowana do darmowego hostingu na **GitHub Pages**.
+It operates **100% offline**, installs directly to the iOS Home Screen without the App Store, and is ready for free hosting on **GitHub Pages**.
 
 ---
 
-## 📱 Jak zainstalować aplikację na iPhonie (Krok po kroku)
+## 📱 How to Install on iOS (iPhone)
 
-Gdy aplikacja zostanie opublikowana na Twoim GitHub Pages (np. `https://twoj-login.github.io/appgym/`):
+Once the application is deployed to your GitHub Pages (e.g., `https://<your-username>.github.io/appgym/`):
 
-1. Otwórz ten adres w przeglądarce **Safari** na iPhonie.
-2. Kliknij ikonę **Udostępnij** (kwadrat ze strzałką w górę na dolnym pasku Safari).
-3. Przewiń w dół i wybierz **„Do ekranu początkowego”** (*Add to Home Screen*).
-4. Kliknij **Dodaj**.
+1. Open the URL in **Safari** on your iPhone.
+2. Tap the **Share** button (the square icon with an upward arrow at the bottom of the screen).
+3. Scroll down and select **"Add to Home Screen"**.
+4. Tap **Add** in the top-right corner.
 
 > [!TIP]
-> Na pulpicie iPhone'a pojawi się zielona ikona aplikacji GymTracker. Po kliknięciu aplikacja otwiera się w trybie **Standalone** (na pełnym ekranie, bez pasków Safari) i działa w **100% offline** na siłowni bez konieczności połączenia z internetem.
+> A green dumbbell icon will appear on your iPhone Home Screen. Tapping it opens the app in **standalone full-screen mode** (without Safari address bars), with full offline support at the gym without requiring cellular reception or Wi-Fi.
 
 ---
 
-## 🚀 Wdrożenie na GitHub Pages
+## ✨ Features
 
-Projekt posiada już wbudowany workflow GitHub Actions (`.github/workflows/deploy.yml`), który automatycznie buduje i publikuje stronę przy każdym wrzuceniu kodu.
+- **100% Offline-First (PWA + Service Worker + LocalStorage):**
+  - All workout logs, sets, and personal records (PRs) persist locally on your device.
+  - Zero server lag, no login required, no cloud dependencies.
+- **Comprehensive Exercise Catalog:**
+  - 35+ default strength and hypertrophy exercises categorized by muscle groups (Chest, Back, Legs, Shoulders, Arms, Abs) and equipment (Barbell, Dumbbell, Machine, Cable, Bodyweight).
+  - Instant live search and category filtering.
+  - Ability to create custom exercises with equipment tags and execution notes.
+- **Active Workout Session Logging:**
+  - Real-time logging of weight (kg) and reps.
+  - **Previous Benchmark Guidance (*POPRZEDNIO*):** Displays previous workout metrics for progressive overload tracking.
+  - Set categorization: Normal, Warmup (W), Drop Set (D), Failure (F).
+  - Quick set cloning (automatically copies last set's weight and reps).
+- **Strength Analytics & 1RM Calculator:**
+  - Automatic estimation of One-Rep Max (**1RM**) using the validated Epley formula.
+  - All-time Personal Record (**PR**) tracking per exercise.
+  - Total workout volume (tonnage in kg) and completed sets summary.
+- **Data Backup & Restore:**
+  - One-click JSON backup export and import directly from the application header.
 
-### Krok 1: Utwórz repozytorium na GitHubie
-1. Wejdź na [GitHub.com](https://github.com) i kliknij **New repository**.
-2. Nazwij je np. `gymtracker` lub `appgym` (może być **Public**).
+---
 
-### Krok 2: Wypchnij kod do repozytorium
-Jeśli masz zainstalowanego Gita na komputerze:
+## 🚀 GitHub Pages Deployment Setup
+
+This repository includes an automated GitHub Actions deployment workflow located at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+### Enabling GitHub Pages in 2 Clicks:
+1. Navigate to your repository on [GitHub.com](https://github.com).
+2. Click **Settings** (gear icon on the top repository navigation).
+3. In the left sidebar, click **Pages**.
+4. Under **Build and deployment** > **Source**, change the dropdown to:
+   👉 **GitHub Actions**
+5. Go to the **Actions** tab and re-run the deployment workflow (or push a new commit via GitHub Desktop).
+6. Your live PWA will be published at `https://<your-username>.github.io/appgym/`.
+
+---
+
+## 🛠️ Tech Stack & Local Development
+
+- **Framework:** React 19 + TypeScript
+- **Bundler:** Vite
+- **Icons:** Lucide React
+- **Storage:** Offline browser storage (`localStorage` + Service Worker caching)
+
 ```bash
-git init
-git add .
-git commit -m "Inicjalizacja GymTracker PWA"
-git branch -M main
-git remote add origin https://github.com/TWOJ_LOGIN/appgym.git
-git push -u origin main
+# Install dependencies
+npm install
+
+# Start local dev server
+npm run dev
+
+# Run production build & typecheck
+npm run build
 ```
-
-*(Alternatywnie: możesz zainstalować darmowy program **GitHub Desktop** lub przeciągnąć pliki projektu bezpośrednio przez stronę GitHub.com).*
-
-### Krok 3: Włącz GitHub Pages w ustawieniach repozytorium
-1. W repozytorium na GitHubie wejdź w **Settings** -> **Pages** (w menu po lewej stronie).
-2. W sekcji **Build and deployment** -> **Source** wybierz: **GitHub Actions**.
-3. Za kilkadziesiąt sekund Twoja strona będzie aktywna pod adresem:
-   `https://TWOJ_LOGIN.github.io/appgym/`
-
----
-
-## ✨ Funkcjonalności
-
-- **100% Offline (PWA + LocalStorage + Service Worker):**
-  - Całość danych zapisywana jest w pamięci telefonu. Działa bez zasięgu na siłowni.
-- **Katalog ćwiczeń w języku polskim:**
-  - Ponad 35 gotowych ćwiczeń z podziałem na partie: Klatka, Plecy, Nogi, Barki, Ramiona, Brzuch.
-  - Szybkie wyszukiwanie i filtrowanie.
-  - Możliwość dodawania własnych ćwiczeń z notatkami technicznymi.
-- **Aktywny trening:**
-  - Wprowadzanie ciężaru i powtórzeń.
-  - Podpowiedź wyniku z poprzedniej sesji (*POPRZEDNIO*).
-  - Typy serii: Normalna, Rozgrzewkowa (W), Drop set (D), Upadek (F).
-  - Automatyczne powielanie ciężaru przy dodawaniu kolejnej serii.
-- **Historia i kalkulator siły (1RM):**
-  - Obliczanie szacowanego maksa na 1 powtórzenie (**1RM**) wg wzoru Epleya.
-  - Osobisty rekord (**PR**) dla każdego ćwiczenia.
-  - Łączna objętość (tonaż w kg) z każdej sesji.
-- **Kopia zapasowa (Backup JSON):**
-  - W nagłówku aplikacji znajduje się przycisk pobrania i wgrania kopii zapasowej danych w formacie JSON.
