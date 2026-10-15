@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ChevronDown, Plus, Edit2, Check, Clock, Dumbbell, Trophy } from 'lucide-react';
+import { ChevronDown, Plus, Edit2, Check, Dumbbell, Trophy } from 'lucide-react';
 import { useWorkout } from '../context/WorkoutContext';
 import { WorkoutExerciseCard } from './WorkoutExerciseCard';
-import { formatDuration, calculateVolume } from '../utils/calculations';
+import { calculateVolume } from '../utils/calculations';
 
 interface ActiveWorkoutModalProps {
   isOpen: boolean;
@@ -17,10 +17,10 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
   onOpenExercisePicker,
   onSelectExercise,
 }) => {
-  const { activeWorkout, workoutDuration, updateTitle, finishWorkout, cancelWorkout } = useWorkout();
+  const { activeWorkout, updateTitle, finishWorkout, cancelWorkout } = useWorkout();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(activeWorkout?.title ?? 'Trening');
+  const [editedTitle, setEditedTitle] = useState(activeWorkout?.title ?? 'Workout');
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notes, setNotes] = useState('');
 
@@ -39,7 +39,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
 
   const handleFinishPrompt = () => {
     if (completedSets.length === 0) {
-      if (!confirm('Nie odhaczono żadnej serii. Czy na pewno chcesz zakończyć trening?')) {
+      if (!confirm('No sets completed. Are you sure you want to finish the workout?')) {
         return;
       }
     }
@@ -53,7 +53,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
   };
 
   const handleCancelPrompt = () => {
-    if (confirm('Czy na pewno chcesz anulować i usunąć ten trening?')) {
+    if (confirm('Are you sure you want to cancel and delete this workout?')) {
       cancelWorkout();
       onClose();
     }
@@ -119,22 +119,6 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
               <Edit2 size={13} color="#6B7280" />
             </div>
           )}
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-              fontSize: '12px',
-              fontWeight: 700,
-              color: '#10B981',
-              marginTop: '2px',
-            }}
-          >
-            <Clock size={12} />
-            <span>{formatDuration(workoutDuration)}</span>
-          </div>
         </div>
 
         <button
@@ -151,47 +135,36 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
             cursor: 'pointer',
           }}
         >
-          Zakończ
+          Finish
         </button>
       </div>
 
-      {/* Live Summary Bar */}
+      {/* Live Summary Bar (Volume & Sets) */}
       <div
         style={{
           display: 'flex',
           backgroundColor: '#16181F',
-          padding: '10px 16px',
+          padding: '12px 16px',
           borderBottom: '1px solid #232733',
         }}
       >
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
-            {formatDuration(workoutDuration)}
-          </div>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '2px' }}>
-            CZAS
-          </div>
-        </div>
-
-        <div style={{ width: '1px', backgroundColor: '#232733' }} />
-
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
+          <div style={{ fontSize: '17px', fontWeight: 800, color: '#F3F4F6' }}>
             {currentVolume} kg
           </div>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '2px' }}>
-            TONAŻ
+          <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
+            TOTAL VOLUME
           </div>
         </div>
 
         <div style={{ width: '1px', backgroundColor: '#232733' }} />
 
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
+          <div style={{ fontSize: '17px', fontWeight: 800, color: '#10B981' }}>
             {completedSets.length}/{allSets.length}
           </div>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '2px' }}>
-            SERIE
+          <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
+            SETS COMPLETED
           </div>
         </div>
       </div>
@@ -210,10 +183,10 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
           <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6B7280' }}>
             <Dumbbell size={48} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
             <p style={{ fontSize: '17px', fontWeight: 800, color: '#F3F4F6', marginBottom: '6px' }}>
-              Trening jest pusty
+              Workout is empty
             </p>
             <p style={{ fontSize: '13px' }}>
-              Kliknij przycisk poniżej, aby dodać pierwsze ćwiczenie do sesji.
+              Tap the button below to add your first exercise.
             </p>
           </div>
         )}
@@ -225,7 +198,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
           onClick={onOpenExercisePicker}
           style={{ width: '100%', marginTop: '10px' }}
         >
-          <Plus size={20} /> Dodaj ćwiczenie
+          <Plus size={20} /> Add Exercise
         </button>
 
         <button
@@ -243,7 +216,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
             marginTop: '8px',
           }}
         >
-          Anuluj i usuń ten trening
+          Cancel and delete this workout
         </button>
       </div>
 
@@ -274,20 +247,19 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               <Trophy size={40} color="#10B981" style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#F3F4F6' }}>
-                Świetny trening!
+                Great workout!
               </h3>
               <p style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '4px' }}>
-                Zaliczono {completedSets.length} serii • {currentVolume} kg w czasie{' '}
-                {formatDuration(workoutDuration)}
+                Completed {completedSets.length} sets • {currentVolume} kg total volume
               </p>
             </div>
 
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#9CA3AF', marginBottom: '8px' }}>
-              Notatki z treningu (opcjonalnie):
+              Workout notes (optional):
             </label>
             <textarea
               rows={3}
-              placeholder="Jak poszło? Ciężary, samopoczucie, regeneracja..."
+              placeholder="How did it go? Weights, energy, recovery..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               style={{
@@ -311,7 +283,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
                 style={{ flex: 1 }}
                 onClick={() => setShowNotesModal(false)}
               >
-                Wróć
+                Back
               </button>
               <button
                 type="button"
@@ -319,7 +291,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
                 style={{ flex: 1.5 }}
                 onClick={handleConfirmFinish}
               >
-                Zapisz trening
+                Save Workout
               </button>
             </div>
           </div>

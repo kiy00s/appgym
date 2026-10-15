@@ -16,7 +16,6 @@ import {
 
 interface WorkoutContextType {
   activeWorkout: WorkoutSession | null;
-  workoutDuration: number;
   startWorkout: (title?: string) => WorkoutSession;
   finishWorkout: (notes?: string) => WorkoutSession | null;
   cancelWorkout: () => void;
@@ -34,24 +33,6 @@ const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 
 export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeWorkout, setActiveWorkout] = useState<WorkoutSession | null>(getActiveWorkout());
-  const [workoutDuration, setWorkoutDuration] = useState<number>(0);
-
-  // Sync duration
-  useEffect(() => {
-    if (!activeWorkout) {
-      setWorkoutDuration(0);
-      return;
-    }
-
-    const startMs = new Date(activeWorkout.startTime).getTime();
-    setWorkoutDuration(Math.max(0, Math.floor((Date.now() - startMs) / 1000)));
-
-    const timer = setInterval(() => {
-      setWorkoutDuration(Math.max(0, Math.floor((Date.now() - startMs) / 1000)));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [activeWorkout?.startTime]);
 
   const refreshState = useCallback(() => {
     setActiveWorkout(getActiveWorkout());
@@ -222,7 +203,6 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     <WorkoutContext.Provider
       value={{
         activeWorkout,
-        workoutDuration,
         startWorkout,
         finishWorkout,
         cancelWorkout,

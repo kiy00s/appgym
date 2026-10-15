@@ -23,7 +23,7 @@ import {
   exportBackupJSON,
   importBackupJSON,
 } from './db/storage';
-import { formatDuration, formatRelativeDate, formatWorkoutDate } from './utils/calculations';
+import { formatRelativeDate, formatWorkoutDate } from './utils/calculations';
 import { ActiveWorkoutModal } from './components/ActiveWorkoutModal';
 import { ExercisePickerModal } from './components/ExercisePickerModal';
 import { NewExerciseModal } from './components/NewExerciseModal';
@@ -31,7 +31,7 @@ import { ExerciseDetailModal } from './components/ExerciseDetailModal';
 import { WorkoutDetailModal } from './components/WorkoutDetailModal';
 
 export const App: React.FC = () => {
-  const { activeWorkout, workoutDuration, startWorkout, addExercise, refreshState } = useWorkout();
+  const { activeWorkout, startWorkout, addExercise, refreshState } = useWorkout();
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'workout' | 'exercises' | 'history'>('workout');
@@ -45,7 +45,7 @@ export const App: React.FC = () => {
 
   // Exercises screen state
   const [exerciseSearch, setExerciseSearch] = useState('');
-  const [exerciseCategory, setExerciseCategory] = useState('Wszystkie');
+  const [exerciseCategory, setExerciseCategory] = useState('All');
 
   const stats = getDashboardStats();
   const completedWorkouts = getCompletedWorkouts();
@@ -92,10 +92,10 @@ export const App: React.FC = () => {
       reader.onload = (event) => {
         const text = event.target?.result as string;
         if (importBackupJSON(text)) {
-          alert('Kopia zapasowa została pomyślnie zaimportowana!');
+          alert('Backup imported successfully!');
           refreshState();
         } else {
-          alert('Błąd podczas importu pliku kopii.');
+          alert('Error importing backup file.');
         }
       };
       reader.readAsText(file);
@@ -104,13 +104,13 @@ export const App: React.FC = () => {
   };
 
   const templates = [
-    { title: 'Push (Klatka + Barki + Triceps)', icon: <Flame size={20} color="#F59E0B" /> },
-    { title: 'Pull (Plecy + Tył barku + Biceps)', icon: <Dumbbell size={20} color="#10B981" /> },
-    { title: 'Legs (Przysiady + Dwugłowe + Łydki)', icon: <Footprints size={20} color="#06B6D4" /> },
+    { title: 'Push (Chest + Shoulders + Triceps)', icon: <Flame size={20} color="#F59E0B" /> },
+    { title: 'Pull (Back + Rear Delts + Biceps)', icon: <Dumbbell size={20} color="#10B981" /> },
+    { title: 'Legs (Quads + Hamstrings + Calves)', icon: <Footprints size={20} color="#06B6D4" /> },
     { title: 'FBW (Full Body Workout)', icon: <Zap size={20} color="#EC4899" /> },
   ];
 
-  const categories = ['Wszystkie', 'Klatka', 'Plecy', 'Nogi', 'Barki', 'Ramiona', 'Brzuch'];
+  const categories = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'];
 
   return (
     <div className="app-viewport">
@@ -138,7 +138,7 @@ export const App: React.FC = () => {
           <button
             type="button"
             onClick={handleExportBackup}
-            title="Pobierz kopię zapasową (JSON)"
+            title="Download Backup (JSON)"
             style={{
               background: 'none',
               border: '1px solid #232733',
@@ -158,7 +158,7 @@ export const App: React.FC = () => {
           <button
             type="button"
             onClick={handleImportBackup}
-            title="Wgraj kopię zapasową (JSON)"
+            title="Upload Backup (JSON)"
             style={{
               background: 'none',
               border: '1px solid #232733',
@@ -193,18 +193,15 @@ export const App: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div className="pulsing-dot" />
                     <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', letterSpacing: '0.8px' }}>
-                      TRENING W TOKU
+                      WORKOUT IN PROGRESS
                     </span>
                   </div>
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#34D399' }}>
-                    {formatDuration(workoutDuration)}
-                  </span>
                 </div>
                 <div style={{ fontSize: '18px', fontWeight: 800, color: '#F3F4F6', marginBottom: '2px' }}>
                   {activeWorkout.title}
                 </div>
                 <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
-                  {activeWorkout.exercises?.length ?? 0} ćwiczeń w sesji • Kliknij, aby wrócić
+                  {activeWorkout.exercises?.length ?? 0} exercises in session • Tap to resume
                 </div>
               </div>
             )}
@@ -212,7 +209,7 @@ export const App: React.FC = () => {
             {/* Quick Start Action */}
             <div style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '10px' }}>
-                SZYBKI START
+                QUICK START
               </h2>
               <button
                 type="button"
@@ -235,9 +232,9 @@ export const App: React.FC = () => {
                   <Play size={20} fill="#0D0E12" />
                 </div>
                 <div style={{ flex: 1, textAlign: 'left' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 800 }}>Rozpocznij pusty trening</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800 }}>Start Empty Workout</div>
                   <div style={{ fontSize: '12px', opacity: 0.8, fontWeight: 500 }}>
-                    Dodawaj ćwiczenia i odhaczaj serie na żywo
+                    Add exercises and log sets on the fly
                   </div>
                 </div>
                 <ChevronRight size={20} />
@@ -247,7 +244,7 @@ export const App: React.FC = () => {
             {/* Summary Stats */}
             <div style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '10px' }}>
-                PODSUMOWANIE
+                SUMMARY
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 <div className="card" style={{ padding: '14px 10px', textAlign: 'center', margin: 0 }}>
@@ -256,7 +253,7 @@ export const App: React.FC = () => {
                     {stats.totalWorkouts}
                   </div>
                   <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '2px' }}>
-                    Treningów
+                    Workouts
                   </div>
                 </div>
 
@@ -268,7 +265,7 @@ export const App: React.FC = () => {
                       : `${stats.totalVolumeKg} kg`}
                   </div>
                   <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '2px' }}>
-                    Tonaż
+                    Volume
                   </div>
                 </div>
 
@@ -278,7 +275,7 @@ export const App: React.FC = () => {
                     {stats.workoutsThisMonth}
                   </div>
                   <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '2px' }}>
-                    W tym mies.
+                    This Month
                   </div>
                 </div>
               </div>
@@ -287,7 +284,7 @@ export const App: React.FC = () => {
             {/* Templates */}
             <div style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '10px' }}>
-                SZABLONY TRENINGOWE
+                WORKOUT ROUTINES
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {templates.map((tmpl, idx) => (
@@ -323,7 +320,7 @@ export const App: React.FC = () => {
                         {tmpl.title}
                       </div>
                       <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>
-                        Kliknij, aby rozpocząć ten plan
+                        Tap to start routine
                       </div>
                     </div>
                     <Plus size={20} color="#10B981" />
@@ -336,7 +333,7 @@ export const App: React.FC = () => {
             {lastWorkout && (
               <div>
                 <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '10px' }}>
-                  OSTATNI TRENING
+                  RECENT WORKOUT
                 </h2>
                 <div
                   className="card"
@@ -365,11 +362,11 @@ export const App: React.FC = () => {
                     }}
                   >
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                      {lastWorkout.exercises?.length ?? 0} ćwiczeń
+                      {lastWorkout.exercises?.length ?? 0} exercises
                     </div>
                     <div style={{ width: '1px', backgroundColor: '#232733' }} />
                     <div style={{ flex: 1, textAlign: 'center' }}>
-                      {lastWorkout.exercises?.flatMap((e) => e.sets).filter((s) => s.isCompleted).length ?? 0} serii
+                      {lastWorkout.exercises?.flatMap((e) => e.sets).filter((s) => s.isCompleted).length ?? 0} sets completed
                     </div>
                   </div>
                 </div>
@@ -397,7 +394,7 @@ export const App: React.FC = () => {
                 <Search size={18} color="#6B7280" />
                 <input
                   type="text"
-                  placeholder="Szukaj ćwiczenia..."
+                  placeholder="Search exercises..."
                   value={exerciseSearch}
                   onChange={(e) => setExerciseSearch(e.target.value)}
                   style={{
@@ -485,7 +482,7 @@ export const App: React.FC = () => {
                           className="badge-pill"
                           style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
                         >
-                          Własne
+                          Custom
                         </span>
                       )}
                     </div>
@@ -501,7 +498,7 @@ export const App: React.FC = () => {
         {activeTab === 'history' && (
           <div>
             <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '12px' }}>
-              HISTORIA TRENINGÓW ({completedWorkouts.length})
+              WORKOUT HISTORY ({completedWorkouts.length})
             </h2>
 
             {completedWorkouts.length > 0 ? (
@@ -510,9 +507,6 @@ export const App: React.FC = () => {
                   const allWsets = w.exercises?.flatMap((e) => e.sets) || [];
                   const compSets = allWsets.filter((s) => s.isCompleted);
                   const totalVol = allWsets.reduce((sum, s) => sum + (s.isCompleted ? s.weight * s.reps : 0), 0);
-                  const duration = w.endTime
-                    ? Math.max(0, Math.floor((new Date(w.endTime).getTime() - new Date(w.startTime).getTime()) / 1000))
-                    : 0;
 
                   return (
                     <div
@@ -535,14 +529,11 @@ export const App: React.FC = () => {
 
                       {/* Stat badges */}
                       <div style={{ display: 'flex', gap: '8px', margin: '10px 0' }}>
-                        <span className="badge-pill" style={{ color: '#F3F4F6', backgroundColor: '#16181F' }}>
-                          ⏱️ {duration > 0 ? formatDuration(duration) : '< 1m'}
-                        </span>
                         <span className="badge-pill" style={{ color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.15)' }}>
                           🏋️ {Math.round(totalVol)} kg
                         </span>
                         <span className="badge-pill" style={{ color: '#06B6D4', backgroundColor: 'rgba(6, 182, 212, 0.15)' }}>
-                          📊 {compSets.length} serii
+                          📊 {compSets.length} sets
                         </span>
                       </div>
 
@@ -568,10 +559,10 @@ export const App: React.FC = () => {
               <div style={{ textAlign: 'center', padding: '50px 20px', color: '#6B7280' }}>
                 <Calendar size={48} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
                 <p style={{ fontSize: '17px', fontWeight: 800, color: '#F3F4F6', marginBottom: '6px' }}>
-                  Brak zapisanych treningów
+                  No workouts recorded
                 </p>
                 <p style={{ fontSize: '13px', marginBottom: '16px' }}>
-                  Gdy ukończysz pierwszą sesję, cała historia i statystyki pojawią się tutaj.
+                  Once you complete your first workout, your full history and stats will appear here.
                 </p>
                 <button
                   type="button"
@@ -579,7 +570,7 @@ export const App: React.FC = () => {
                   onClick={() => handleStartWorkout()}
                   style={{ margin: '0 auto' }}
                 >
-                  Rozpocznij pierwszy trening
+                  Start First Workout
                 </button>
               </div>
             )}
@@ -595,7 +586,7 @@ export const App: React.FC = () => {
           onClick={() => setActiveTab('workout')}
         >
           <Dumbbell size={22} />
-          <span className="tab-label">Trening</span>
+          <span className="tab-label">Workout</span>
         </button>
 
         <button
@@ -604,7 +595,7 @@ export const App: React.FC = () => {
           onClick={() => setActiveTab('exercises')}
         >
           <BookOpen size={22} />
-          <span className="tab-label">Ćwiczenia</span>
+          <span className="tab-label">Exercises</span>
         </button>
 
         <button
@@ -613,7 +604,7 @@ export const App: React.FC = () => {
           onClick={() => setActiveTab('history')}
         >
           <Calendar size={22} />
-          <span className="tab-label">Historia</span>
+          <span className="tab-label">History</span>
         </button>
       </nav>
 

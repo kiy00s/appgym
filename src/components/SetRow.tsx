@@ -54,7 +54,7 @@ export const SetRow: React.FC<SetRowProps> = ({
       <button
         type="button"
         onClick={cycleSetType}
-        title="Kliknij, aby zmienić typ (Normalna, Rozgrzewkowa, Drop set, Upadek)"
+        title="Click to change set type (Normal, Warmup, Drop set, Failure)"
         style={{
           width: '32px',
           height: '32px',
@@ -165,7 +165,7 @@ export const SetRow: React.FC<SetRowProps> = ({
       <button
         type="button"
         onClick={() => {
-          if (confirm(`Usunąć serię ${set.setNumber}?`)) {
+          if (confirm(`Delete set ${set.setNumber}?`)) {
             onDelete();
           }
         }}

@@ -4,23 +4,23 @@ import { addCustomExercise } from '../db/storage';
 import { MuscleGroup, EquipmentType } from '../types/workout';
 
 const CATEGORIES: MuscleGroup[] = [
-  'Klatka',
-  'Plecy',
-  'Nogi',
-  'Barki',
-  'Ramiona',
-  'Brzuch',
-  'Całe ciało',
-  'Inne',
+  'Chest',
+  'Back',
+  'Legs',
+  'Shoulders',
+  'Arms',
+  'Core',
+  'Full Body',
+  'Other',
 ];
 
 const EQUIPMENTS: EquipmentType[] = [
-  'Sztanga',
-  'Hantle',
-  'Maszyna',
-  'Wyciąg',
-  'Masa ciała',
-  'Inne',
+  'Barbell',
+  'Dumbbell',
+  'Machine',
+  'Cable',
+  'Bodyweight',
+  'Other',
 ];
 
 interface NewExerciseModalProps {
@@ -35,8 +35,8 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
   onCreated,
 }) => {
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<MuscleGroup>('Klatka');
-  const [equipment, setEquipment] = useState<EquipmentType>('Sztanga');
+  const [category, setCategory] = useState<MuscleGroup>('Chest');
+  const [equipment, setEquipment] = useState<EquipmentType>('Barbell');
   const [notes, setNotes] = useState('');
 
   if (!isOpen) return null;
@@ -44,7 +44,7 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Podaj nazwę ćwiczenia');
+      alert('Please enter an exercise name');
       return;
     }
 
@@ -71,19 +71,19 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
         >
           <X size={24} />
         </button>
-        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Nowe ćwiczenie</h2>
+        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>New Exercise</h2>
         <div style={{ width: '24px' }}></div>
       </div>
 
       <form onSubmit={handleSubmit} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#9CA3AF', marginBottom: '8px' }}>
-            Nazwa ćwiczenia *
+            Exercise Name *
           </label>
           <input
             type="text"
             required
-            placeholder="np. Wyciskanie hantli na skosie"
+            placeholder="e.g. Incline Dumbbell Press"
             value={name}
             onChange={(e) => setName(e.target.value)}
             style={{
@@ -101,7 +101,7 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
 
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#9CA3AF', marginBottom: '8px' }}>
-            Partia mięśniowa *
+            Muscle Group *
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {CATEGORIES.map((cat) => {
@@ -131,7 +131,7 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
 
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#9CA3AF', marginBottom: '8px' }}>
-            Sprzęt *
+            Equipment *
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {EQUIPMENTS.map((eq) => {
@@ -161,11 +161,11 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
 
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#9CA3AF', marginBottom: '8px' }}>
-            Wskazówki / notatki (opcjonalnie)
+            Tips / Notes (optional)
           </label>
           <textarea
             rows={3}
-            placeholder="np. Kąt oparcia 30 stopni, chwyt neutralny"
+            placeholder="e.g. 30-degree bench angle, neutral grip"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             style={{
@@ -183,7 +183,7 @@ export const NewExerciseModal: React.FC<NewExerciseModalProps> = ({
         </div>
 
         <button type="submit" className="btn-primary" style={{ marginTop: '10px' }}>
-          Zapisz ćwiczenie
+          Save Exercise
         </button>
       </form>
     </div>

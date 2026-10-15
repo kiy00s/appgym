@@ -34,12 +34,12 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Format ISO date string into Polish date format (e.g., "15 października 2026, 10:30")
+ * Format ISO date string into English date format (e.g., "Oct 15, 2026, 10:30 AM")
  */
 export function formatWorkoutDate(isoString: string): string {
   try {
     const date = new Date(isoString);
-    return date.toLocaleDateString('pl-PL', {
+    return date.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -52,7 +52,7 @@ export function formatWorkoutDate(isoString: string): string {
 }
 
 /**
- * Format relative date (e.g. "Dzisiaj", "Wczoraj", "3 dni temu")
+ * Format relative date (e.g. "Today, 10:30 AM", "Yesterday, 10:30 AM", "3 days ago")
  */
 export function formatRelativeDate(isoString: string): string {
   try {
@@ -62,15 +62,15 @@ export function formatRelativeDate(isoString: string): string {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return `Dzisiaj, ${date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+      return `Today, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
     }
     if (diffDays === 1) {
-      return `Wczoraj, ${date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+      return `Yesterday, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
     }
     if (diffDays < 7) {
-      return `${diffDays} dni temu`;
+      return `${diffDays} days ago`;
     }
-    return date.toLocaleDateString('pl-PL', {
+    return date.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

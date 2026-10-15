@@ -57,7 +57,7 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
         <button
           type="button"
           onClick={() => {
-            if (confirm(`Czy na pewno usunąć "${item.exercise.name}" z tego treningu?`)) {
+            if (confirm(`Are you sure you want to remove "${item.exercise.name}" from this workout?`)) {
               removeExercise(item.id);
             }
           }}
@@ -87,11 +87,11 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
           letterSpacing: '0.5px',
         }}
       >
-        <div style={{ width: '32px', textAlign: 'center' }}>SERIA</div>
-        <div style={{ flex: 1.3, textAlign: 'center' }}>POPRZEDNIO</div>
+        <div style={{ width: '32px', textAlign: 'center' }}>SET</div>
+        <div style={{ flex: 1.3, textAlign: 'center' }}>PREVIOUS</div>
         <div style={{ flex: 1.1, textAlign: 'center' }}>KG</div>
-        <div style={{ flex: 1.1, textAlign: 'center' }}>POWT</div>
-        <div style={{ width: '34px', textAlign: 'center', marginLeft: '4px' }}>STATUS</div>
+        <div style={{ flex: 1.1, textAlign: 'center' }}>REPS</div>
+        <div style={{ width: '34px', textAlign: 'center', marginLeft: '4px' }}>DONE</div>
         <div style={{ width: '28px' }}></div>
       </div>
 
@@ -135,7 +135,7 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
           cursor: 'pointer',
         }}
       >
-        <Plus size={16} /> Dodaj serię
+        <Plus size={16} /> Add Set
       </button>
     </div>
   );

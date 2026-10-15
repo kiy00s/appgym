@@ -1,20 +1,22 @@
 export type MuscleGroup =
-  | 'Klatka'
-  | 'Plecy'
-  | 'Nogi'
-  | 'Barki'
-  | 'Ramiona'
-  | 'Brzuch'
-  | 'Całe ciało'
-  | 'Inne';
+  | 'Chest'
+  | 'Back'
+  | 'Legs'
+  | 'Shoulders'
+  | 'Arms'
+  | 'Core'
+  | 'Full Body'
+  | 'Other'
+  | string;
 
 export type EquipmentType =
-  | 'Sztanga'
-  | 'Hantle'
-  | 'Maszyna'
-  | 'Wyciąg'
-  | 'Masa ciała'
-  | 'Inne';
+  | 'Barbell'
+  | 'Dumbbell'
+  | 'Machine'
+  | 'Cable'
+  | 'Bodyweight'
+  | 'Other'
+  | string;
 
 export type SetType = 'normal' | 'warmup' | 'drop' | 'failure';
 

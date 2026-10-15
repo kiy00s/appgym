@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Trash2, Clock, Dumbbell, Layers } from 'lucide-react';
+import { X, Trash2, Dumbbell, Layers } from 'lucide-react';
 import { getWorkoutById, deleteWorkout } from '../db/storage';
-import { formatWorkoutDate, formatDuration, calculateVolume, calculate1RM } from '../utils/calculations';
+import { formatWorkoutDate, calculateVolume, calculate1RM } from '../utils/calculations';
 
 interface WorkoutDetailModalProps {
   workoutId: number | null;
@@ -25,17 +25,8 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
   const completedSets = allSets.filter((s) => s.isCompleted);
   const totalVolume = calculateVolume(allSets);
 
-  const durationSec = workout.endTime
-    ? Math.max(
-        0,
-        Math.floor(
-          (new Date(workout.endTime).getTime() - new Date(workout.startTime).getTime()) / 1000
-        )
-      )
-    : 0;
-
   const handleDelete = () => {
-    if (confirm('Czy na pewno chcesz trwale usunąć ten trening z historii?')) {
+    if (confirm('Are you sure you want to permanently delete this workout from history?')) {
       deleteWorkout(workout.id);
       if (onDeleted) onDeleted();
       onClose();
@@ -52,7 +43,7 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
         >
           <X size={24} />
         </button>
-        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Szczegóły treningu</h2>
+        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Workout Details</h2>
         <button
           type="button"
           onClick={handleDelete}
@@ -80,23 +71,13 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
               padding: '12px 6px',
             }}
           >
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
-                <Clock size={16} color="#9CA3AF" />
-                {durationSec > 0 ? formatDuration(durationSec) : '< 1m'}
-              </div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '4px' }}>
-                CZAS
-              </div>
-            </div>
-
-            <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid #232733', borderRight: '1px solid #232733' }}>
+            <div style={{ flex: 1, textAlign: 'center', borderRight: '1px solid #232733' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '16px', fontWeight: 800, color: '#10B981' }}>
                 <Dumbbell size={16} color="#10B981" />
                 {totalVolume} kg
               </div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '4px' }}>
-                TONAŻ
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '4px', letterSpacing: '0.5px' }}>
+                TOTAL VOLUME
               </div>
             </div>
 
@@ -105,8 +86,8 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
                 <Layers size={16} color="#06B6D4" />
                 {completedSets.length}
               </div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '4px' }}>
-                SERII
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '4px', letterSpacing: '0.5px' }}>
+                SETS COMPLETED
               </div>
             </div>
           </div>
@@ -121,13 +102,13 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
                 color: '#9CA3AF',
               }}
             >
-              <strong style={{ color: '#F3F4F6' }}>Notatki:</strong> {workout.notes}
+              <strong style={{ color: '#F3F4F6' }}>Notes:</strong> {workout.notes}
             </div>
           )}
         </div>
 
         {/* Exercises */}
-        <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Wykonane ćwiczenia</h3>
+        <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Completed Exercises</h3>
 
         {workout.exercises && workout.exercises.length > 0 ? (
           workout.exercises.map((item, idx) => (
@@ -162,10 +143,10 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
                     color: '#6B7280',
                   }}
                 >
-                  <div style={{ width: '40px', textAlign: 'center' }}>SERIA</div>
-                  <div style={{ flex: 1, textAlign: 'center' }}>CIĘŻAR</div>
-                  <div style={{ flex: 1, textAlign: 'center' }}>POWT</div>
-                  <div style={{ flex: 1, textAlign: 'center' }}>1RM</div>
+                  <div style={{ width: '40px', textAlign: 'center' }}>SET</div>
+                  <div style={{ flex: 1, textAlign: 'center' }}>WEIGHT</div>
+                  <div style={{ flex: 1, textAlign: 'center' }}>REPS</div>
+                  <div style={{ flex: 1, textAlign: 'center' }}>EST. 1RM</div>
                 </div>
 
                 {item.sets.map((s) => {
@@ -203,7 +184,7 @@ export const WorkoutDetailModal: React.FC<WorkoutDetailModalProps> = ({
           ))
         ) : (
           <div style={{ textAlign: 'center', color: '#6B7280', padding: '20px' }}>
-            Brak zarejestrowanych ćwiczeń
+            No exercises recorded
           </div>
         )}
       </div>

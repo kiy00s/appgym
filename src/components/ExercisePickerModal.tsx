@@ -4,13 +4,13 @@ import { getExercises } from '../db/storage';
 import { Exercise } from '../types/workout';
 
 const CATEGORIES = [
-  'Wszystkie',
-  'Klatka',
-  'Plecy',
-  'Nogi',
-  'Barki',
-  'Ramiona',
-  'Brzuch',
+  'All',
+  'Chest',
+  'Back',
+  'Legs',
+  'Shoulders',
+  'Arms',
+  'Core',
 ];
 
 interface ExercisePickerModalProps {
@@ -27,7 +27,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
   onOpenCreateNew,
 }) => {
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Wszystkie');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   if (!isOpen) return null;
 
@@ -46,7 +46,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
         >
           <X size={24} />
         </button>
-        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Wybierz ćwiczenie</h2>
+        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Select Exercise</h2>
         <button
           type="button"
           onClick={() => {
@@ -65,7 +65,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
             gap: '4px',
           }}
         >
-          <Plus size={16} /> Nowe
+          <Plus size={16} /> New
         </button>
       </div>
 
@@ -86,7 +86,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
           <Search size={18} color="#6B7280" />
           <input
             type="text"
-            placeholder="Szukaj ćwiczenia..."
+            placeholder="Search exercises..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -168,7 +168,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                       className="badge-pill"
                       style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
                     >
-                      Własne
+                      Custom
                     </span>
                   )}
                 </div>
@@ -194,10 +194,10 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
           {exercises.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6B7280' }}>
               <p style={{ fontSize: '16px', fontWeight: 700, color: '#F3F4F6', marginBottom: '6px' }}>
-                Nie znaleziono ćwiczenia
+                No exercises found
               </p>
               <p style={{ fontSize: '13px', marginBottom: '16px' }}>
-                Możesz dodać je samemu do bazy danych!
+                You can create and add your own custom exercise!
               </p>
               <button
                 type="button"
@@ -208,7 +208,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                   onOpenCreateNew();
                 }}
               >
-                <Plus size={16} /> Dodaj własne ćwiczenie
+                <Plus size={16} /> Add Custom Exercise
               </button>
             </div>
           )}

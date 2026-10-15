@@ -1,7 +1,7 @@
 {
   "name": "GymTracker",
   "short_name": "GymTracker",
-  "description": "Śledzenie postępów na siłowni w 100% offline",
+  "description": "Workout & progressive overload tracker - 100% offline",
   "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",

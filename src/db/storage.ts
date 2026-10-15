@@ -10,16 +10,28 @@ import { DEFAULT_EXERCISES } from '../constants/defaultExercises';
 import { calculate1RM, calculateVolume } from '../utils/calculations';
 
 const STORAGE_KEYS = {
-  EXERCISES: 'gym_exercises_v1',
+  EXERCISES: 'gym_exercises_v2',
   WORKOUTS: 'gym_workouts_v1',
   ACTIVE_WORKOUT: 'gym_active_workout_v1',
 };
 
-// Initialize default exercises if not present
+// Initialize default exercises if not present, preserving any existing custom exercises
 function initializeStorage(): void {
   try {
     const storedExercises = localStorage.getItem(STORAGE_KEYS.EXERCISES);
     if (!storedExercises) {
+      // Check if previous v1 storage exists to preserve custom exercises
+      const oldV1Raw = localStorage.getItem('gym_exercises_v1');
+      let customExercises: Exercise[] = [];
+      if (oldV1Raw) {
+        try {
+          const oldList: Exercise[] = JSON.parse(oldV1Raw);
+          customExercises = oldList.filter((e) => e.isCustom);
+        } catch {
+          // ignore parsing error
+        }
+      }
+
       const initialExercises: Exercise[] = DEFAULT_EXERCISES.map((ex, idx) => ({
         id: idx + 1,
         name: ex.name,
@@ -28,6 +40,13 @@ function initializeStorage(): void {
         isCustom: false,
         notes: null,
       }));
+
+      // Append custom exercises if any existed
+      customExercises.forEach((ce) => {
+        const nextId = initialExercises.reduce((max, e) => Math.max(max, e.id), 0) + 1;
+        initialExercises.push({ ...ce, id: nextId });
+      });
+
       localStorage.setItem(STORAGE_KEYS.EXERCISES, JSON.stringify(initialExercises));
     }
   } catch (e) {
@@ -43,7 +62,7 @@ export function getExercises(filter?: { search?: string; category?: string }): E
     const raw = localStorage.getItem(STORAGE_KEYS.EXERCISES);
     let list: Exercise[] = raw ? JSON.parse(raw) : [];
 
-    if (filter?.category && filter.category !== 'Wszystkie') {
+    if (filter?.category && filter.category !== 'All' && filter.category !== 'Wszystkie') {
       list = list.filter((e) => e.category === filter.category);
     }
 
@@ -54,7 +73,7 @@ export function getExercises(filter?: { search?: string; category?: string }): E
 
     return list.sort((a, b) => {
       if (a.isCustom !== b.isCustom) return a.isCustom ? -1 : 1;
-      return a.name.localeCompare(b.name, 'pl');
+      return a.name.localeCompare(b.name, 'en');
     });
   } catch {
     return [];
@@ -269,14 +288,14 @@ export function cancelActiveWorkout(): void {
 }
 
 export function createNewWorkout(title?: string): WorkoutSession {
-  const dateStr = new Date().toLocaleDateString('pl-PL', {
+  const dateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
+    month: 'short',
     day: 'numeric',
-    month: 'numeric',
   });
   const workout: WorkoutSession = {
     id: Date.now(),
-    title: title?.trim() || `Trening ${dateStr}`,
+    title: title?.trim() || `Workout - ${dateStr}`,
     startTime: new Date().toISOString(),
     status: 'in_progress',
     exercises: [],

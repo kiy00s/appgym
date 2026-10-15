@@ -28,7 +28,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
 
   const handleDelete = () => {
     if (!exercise.isCustom) return;
-    if (confirm(`Czy na pewno chcesz usunąć ćwiczenie "${exercise.name}"?`)) {
+    if (confirm(`Are you sure you want to delete exercise "${exercise.name}"?`)) {
       deleteCustomExercise(exercise.id);
       if (onDeleted) onDeleted();
       onClose();
@@ -55,7 +55,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
         >
           <X size={24} />
         </button>
-        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Szczegóły ćwiczenia</h2>
+        <h2 style={{ fontSize: '17px', fontWeight: 800 }}>Exercise Details</h2>
         {exercise.isCustom ? (
           <button
             type="button"
@@ -83,7 +83,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                 className="badge-pill"
                 style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}
               >
-                Własne
+                Custom
               </span>
             )}
           </div>
@@ -117,8 +117,8 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#F3F4F6' }}>
                 {stats.personalRecord > 0 ? `${stats.personalRecord} kg` : '—'}
               </div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '4px' }}>
-                REKORD (PR)
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '4px', letterSpacing: '0.5px' }}>
+                RECORD (PR)
               </div>
             </div>
 
@@ -126,8 +126,8 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#10B981' }}>
                 {stats.estimated1RMMax > 0 ? `${stats.estimated1RMMax} kg` : '—'}
               </div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '4px' }}>
-                SZACOWANY 1RM
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '4px', letterSpacing: '0.5px' }}>
+                EST. 1RM
               </div>
             </div>
 
@@ -135,8 +135,8 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#F3F4F6' }}>
                 {stats.totalWorkouts}
               </div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', marginTop: '4px' }}>
-                SESJI
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '4px', letterSpacing: '0.5px' }}>
+                SESSIONS
               </div>
             </div>
           </div>
@@ -144,14 +144,14 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
           {/* Action button */}
           <button type="button" className="btn-primary" onClick={handleAction} style={{ width: '100%' }}>
             <Dumbbell size={18} />
-            {activeWorkout ? 'Dodaj do aktywnego treningu' : 'Rozpocznij trening z tym ćwiczeniem'}
+            {activeWorkout ? 'Add to Active Workout' : 'Start Workout with this Exercise'}
           </button>
         </div>
 
         {/* History Timeline */}
         <div>
           <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '12px' }}>
-            Historia wykonania
+            Exercise History
           </h3>
 
           {stats.history.length > 0 ? (
@@ -211,7 +211,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                     }}
                   >
                     <span>1RM: ~{entry.estimated1RM} kg</span>
-                    <span>Tonaż: {entry.totalVolume} kg</span>
+                    <span>Volume: {entry.totalVolume} kg</span>
                   </div>
                 </div>
               ))}
@@ -220,10 +220,10 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
             <div style={{ textAlign: 'center', padding: '30px 20px', color: '#6B7280' }}>
               <Dumbbell size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
               <p style={{ fontSize: '15px', fontWeight: 700, color: '#F3F4F6', marginBottom: '4px' }}>
-                Brak zapisanych serii
+                No logged sets
               </p>
               <p style={{ fontSize: '13px' }}>
-                Wykonaj to ćwiczenie na kolejnym treningu, a historia i rekordy pojawią się w tym miejscu!
+                Perform this exercise in an upcoming workout to track your history and records here!
               </p>
             </div>
           )}
