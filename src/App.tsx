@@ -14,6 +14,7 @@ import {
   Upload,
   Edit3,
   Trash2,
+  RotateCw,
 } from 'lucide-react';
 import { useWorkout } from './context/WorkoutContext';
 import {
@@ -143,6 +144,27 @@ export const App: React.FC = () => {
     input.click();
   };
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleForceRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.update();
+        }
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map((name) => caches.delete(name)));
+        }
+      }
+    } catch (e) {
+      console.log('Force refresh error:', e);
+    }
+    window.location.reload();
+  };
+
   const categories = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'];
 
   // Helper to get exercise names for a routine
@@ -178,7 +200,28 @@ export const App: React.FC = () => {
           <h1>GymTracker</h1>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            type="button"
+            onClick={handleForceRefresh}
+            title="Refresh app & check for updates"
+            style={{
+              background: 'none',
+              border: '1px solid #232733',
+              borderRadius: '8px',
+              color: '#9CA3AF',
+              padding: '6px 8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '11px',
+              fontWeight: 700,
+            }}
+          >
+            <RotateCw size={13} className={isRefreshing ? 'spin-icon' : ''} />
+            Update
+          </button>
           <button
             type="button"
             onClick={handleExportBackup}

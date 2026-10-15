@@ -259,3 +259,14 @@ input, button, textarea {
   justify-content: space-between;
   padding-top: calc(env(safe-area-inset-top, 20px) + 8px);
 }
+
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
