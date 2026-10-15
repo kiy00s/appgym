@@ -85,3 +85,13 @@ export interface ExerciseStats {
   totalSets: number;
   history: ExerciseHistoryEntry[];
 }
+
+export interface WorkoutRoutine {
+  id: string;
+  title: string;
+  description?: string;
+  exerciseIds: number[];
+  isCustom: boolean;
+  createdAt?: string;
+}
+

@@ -1,45 +1,54 @@
 import React, { useState } from 'react';
 import {
   Dumbbell,
+  Layers,
   BookOpen,
   Calendar,
   Play,
   Trophy,
   Activity,
-  Flame,
-  Footprints,
-  Zap,
   ChevronRight,
   Plus,
   Search,
   Download,
   Upload,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
 import { useWorkout } from './context/WorkoutContext';
 import {
   getDashboardStats,
   getCompletedWorkouts,
   getExercises,
+  getRoutines,
+  getCustomRoutines,
+  getDefaultRoutines,
+  deleteCustomRoutine,
   exportBackupJSON,
   importBackupJSON,
 } from './db/storage';
 import { formatRelativeDate, formatWorkoutDate } from './utils/calculations';
+import { WorkoutRoutine } from './types/workout';
 import { ActiveWorkoutModal } from './components/ActiveWorkoutModal';
 import { ExercisePickerModal } from './components/ExercisePickerModal';
 import { NewExerciseModal } from './components/NewExerciseModal';
 import { ExerciseDetailModal } from './components/ExerciseDetailModal';
 import { WorkoutDetailModal } from './components/WorkoutDetailModal';
+import { CreateRoutineModal } from './components/CreateRoutineModal';
 
 export const App: React.FC = () => {
-  const { activeWorkout, startWorkout, addExercise, refreshState } = useWorkout();
+  const { activeWorkout, startWorkout, startWorkoutWithRoutine, addExercise, refreshState } =
+    useWorkout();
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'workout' | 'exercises' | 'history'>('workout');
+  const [activeTab, setActiveTab] = useState<'workout' | 'routines' | 'exercises' | 'history'>('workout');
 
   // Modals state
   const [isActiveModalOpen, setIsActiveModalOpen] = useState(false);
   const [isExercisePickerOpen, setIsExercisePickerOpen] = useState(false);
   const [isNewExerciseOpen, setIsNewExerciseOpen] = useState(false);
+  const [isCreateRoutineOpen, setIsCreateRoutineOpen] = useState(false);
+  const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
 
@@ -51,12 +60,26 @@ export const App: React.FC = () => {
   const completedWorkouts = getCompletedWorkouts();
   const lastWorkout = completedWorkouts[0];
 
+  const allExercises = getExercises();
+  const customRoutines = getCustomRoutines();
+  const defaultRoutines = getDefaultRoutines();
+  const allRoutines = getRoutines();
+
   const handleStartWorkout = (title?: string) => {
     if (activeWorkout) {
       setIsActiveModalOpen(true);
       return;
     }
     startWorkout(title);
+    setIsActiveModalOpen(true);
+  };
+
+  const handleStartRoutine = (routine: WorkoutRoutine) => {
+    if (activeWorkout) {
+      setIsActiveModalOpen(true);
+      return;
+    }
+    startWorkoutWithRoutine(routine);
     setIsActiveModalOpen(true);
   };
 
@@ -68,6 +91,23 @@ export const App: React.FC = () => {
 
   const handleAddExerciseFromPicker = (exerciseId: number) => {
     addExercise(exerciseId);
+  };
+
+  const handleOpenNewRoutine = () => {
+    setEditingRoutineId(null);
+    setIsCreateRoutineOpen(true);
+  };
+
+  const handleOpenEditRoutine = (id: string) => {
+    setEditingRoutineId(id);
+    setIsCreateRoutineOpen(true);
+  };
+
+  const handleDeleteRoutine = (id: string, title: string) => {
+    if (confirm(`Are you sure you want to delete routine "${title}"?`)) {
+      deleteCustomRoutine(id);
+      refreshState();
+    }
   };
 
   const handleExportBackup = () => {
@@ -103,17 +143,21 @@ export const App: React.FC = () => {
     input.click();
   };
 
-  const templates = [
-    { title: 'Push (Chest + Shoulders + Triceps)', icon: <Flame size={20} color="#F59E0B" /> },
-    { title: 'Pull (Back + Rear Delts + Biceps)', icon: <Dumbbell size={20} color="#10B981" /> },
-    { title: 'Legs (Quads + Hamstrings + Calves)', icon: <Footprints size={20} color="#06B6D4" /> },
-    { title: 'FBW (Full Body Workout)', icon: <Zap size={20} color="#EC4899" /> },
-  ];
-
   const categories = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'];
+
+  // Helper to get exercise names for a routine
+  const getRoutineExerciseNames = (routine: WorkoutRoutine): string => {
+    const names = routine.exerciseIds
+      .map((id) => allExercises.find((e) => e.id === id)?.name)
+      .filter((n): n is string => !!n);
+    return names.length > 0 ? names.join(' • ') : 'No exercises configured';
+  };
 
   return (
     <div className="app-viewport">
+      {/* Top safe notch spacer */}
+      <div className="top-safe-spacer" />
+
       {/* Top Header */}
       <header className="app-header">
         <div className="header-title-box">
@@ -281,17 +325,34 @@ export const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Templates */}
+            {/* Quick Routines Section */}
             <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '10px' }}>
-                WORKOUT ROUTINES
-              </h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF' }}>
+                  WORKOUT ROUTINES
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('routines')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#10B981',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Manage Plans →
+                </button>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {templates.map((tmpl, idx) => (
+                {allRoutines.slice(0, 4).map((routine) => (
                   <div
-                    key={idx}
+                    key={routine.id}
                     className="card"
-                    onClick={() => handleStartWorkout(tmpl.title)}
+                    onClick={() => handleStartRoutine(routine)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -311,16 +372,27 @@ export const App: React.FC = () => {
                         justifyContent: 'center',
                         marginRight: '12px',
                         flexShrink: 0,
+                        color: routine.isCustom ? '#10B981' : '#06B6D4',
                       }}
                     >
-                      {tmpl.icon}
+                      <Layers size={20} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#F3F4F6' }}>
-                        {tmpl.title}
+                    <div style={{ flex: 1, minWidth: 0, marginRight: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#F3F4F6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {routine.title}
+                        </div>
+                        {routine.isCustom && (
+                          <span
+                            className="badge-pill"
+                            style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '9px', padding: '2px 6px' }}
+                          >
+                            Custom
+                          </span>
+                        )}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>
-                        Tap to start routine
+                      <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {routine.exerciseIds.length} exercises • Tap to start
                       </div>
                     </div>
                     <Plus size={20} color="#10B981" />
@@ -375,7 +447,209 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* ================= TAB 2: EXERCISES CATALOG ================= */}
+        {/* ================= TAB 2: ROUTINES / PLANS ================= */}
+        {activeTab === 'routines' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#F3F4F6' }}>
+                  Workout Plans
+                </h2>
+                <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                  Create custom routines or pick standard routines
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleOpenNewRoutine}
+                className="btn-primary"
+                style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '10px' }}
+              >
+                <Plus size={16} /> New Plan
+              </button>
+            </div>
+
+            {/* Custom Routines Section */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#9CA3AF', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                MY CUSTOM PLANS ({customRoutines.length})
+              </h3>
+
+              {customRoutines.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {customRoutines.map((routine) => (
+                    <div key={routine.id} className="card" style={{ margin: 0, padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
+                              {routine.title}
+                            </h4>
+                            <span
+                              className="badge-pill"
+                              style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '10px' }}
+                            >
+                              Custom
+                            </span>
+                          </div>
+                          {routine.description && (
+                            <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '3px' }}>
+                              {routine.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditRoutine(routine.id)}
+                            style={{
+                              background: 'none',
+                              border: '1px solid #232733',
+                              borderRadius: '8px',
+                              padding: '6px',
+                              color: '#9CA3AF',
+                              cursor: 'pointer',
+                            }}
+                            title="Edit Routine"
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRoutine(routine.id, routine.title)}
+                            style={{
+                              background: 'none',
+                              border: '1px solid #232733',
+                              borderRadius: '8px',
+                              padding: '6px',
+                              color: '#EF4444',
+                              cursor: 'pointer',
+                            }}
+                            title="Delete Routine"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Exercises list preview */}
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: '#6B7280',
+                          lineHeight: '1.4',
+                          margin: '10px 0 14px',
+                          backgroundColor: '#16181F',
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                        }}
+                      >
+                        <strong>{routine.exerciseIds.length} exercises:</strong> {getRoutineExerciseNames(routine)}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={() => handleStartRoutine(routine)}
+                        style={{ width: '100%', padding: '10px', fontSize: '14px' }}
+                      >
+                        <Play size={16} fill="#0D0E12" /> Start Workout with this Plan
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  onClick={handleOpenNewRoutine}
+                  style={{
+                    border: '1.5px dashed #282C37',
+                    borderRadius: '14px',
+                    padding: '24px 16px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    backgroundColor: 'rgba(22, 24, 31, 0.4)',
+                  }}
+                >
+                  <Layers size={32} style={{ margin: '0 auto 8px', color: '#10B981', opacity: 0.8 }} />
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#F3F4F6' }}>
+                    Create Your First Workout Plan
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px', marginBottom: '12px' }}>
+                    Build custom routines with your favorite exercises and target order.
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ margin: '0 auto', fontSize: '12px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenNewRoutine();
+                    }}
+                  >
+                    <Plus size={15} color="#10B981" /> Create Plan
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Default Routines Section */}
+            <div>
+              <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#9CA3AF', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                STANDARD PRESETS ({defaultRoutines.length})
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {defaultRoutines.map((routine) => (
+                  <div key={routine.id} className="card" style={{ margin: 0, padding: '16px' }}>
+                    <div style={{ marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
+                          {routine.title}
+                        </h4>
+                        <span
+                          className="badge-pill"
+                          style={{ backgroundColor: '#20242D', color: '#9CA3AF', fontSize: '10px' }}
+                        >
+                          Preset
+                        </span>
+                      </div>
+                      {routine.description && (
+                        <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '3px' }}>
+                          {routine.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: '#6B7280',
+                        lineHeight: '1.4',
+                        margin: '10px 0 14px',
+                        backgroundColor: '#16181F',
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                      }}
+                    >
+                      <strong>{routine.exerciseIds.length} exercises:</strong> {getRoutineExerciseNames(routine)}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleStartRoutine(routine)}
+                      style={{ width: '100%', padding: '10px', fontSize: '14px', color: '#10B981', borderColor: '#232733' }}
+                    >
+                      <Play size={16} /> Start Routine
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= TAB 3: EXERCISES CATALOG ================= */}
         {activeTab === 'exercises' && (
           <div>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
@@ -494,7 +768,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* ================= TAB 3: HISTORY ================= */}
+        {/* ================= TAB 4: HISTORY ================= */}
         {activeTab === 'history' && (
           <div>
             <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#9CA3AF', marginBottom: '12px' }}>
@@ -578,15 +852,24 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Bottom Tabs Bar */}
+      {/* Bottom Tabs Bar - 4 Tabs */}
       <nav className="bottom-tabs">
         <button
           type="button"
           className={`tab-button ${activeTab === 'workout' ? 'active' : ''}`}
           onClick={() => setActiveTab('workout')}
         >
-          <Dumbbell size={22} />
+          <Dumbbell size={20} />
           <span className="tab-label">Workout</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tab-button ${activeTab === 'routines' ? 'active' : ''}`}
+          onClick={() => setActiveTab('routines')}
+        >
+          <Layers size={20} />
+          <span className="tab-label">Plans</span>
         </button>
 
         <button
@@ -594,7 +877,7 @@ export const App: React.FC = () => {
           className={`tab-button ${activeTab === 'exercises' ? 'active' : ''}`}
           onClick={() => setActiveTab('exercises')}
         >
-          <BookOpen size={22} />
+          <BookOpen size={20} />
           <span className="tab-label">Exercises</span>
         </button>
 
@@ -603,7 +886,7 @@ export const App: React.FC = () => {
           className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
-          <Calendar size={22} />
+          <Calendar size={20} />
           <span className="tab-label">History</span>
         </button>
       </nav>
@@ -632,6 +915,14 @@ export const App: React.FC = () => {
           }
           refreshState();
         }}
+      />
+
+      <CreateRoutineModal
+        isOpen={isCreateRoutineOpen}
+        routineId={editingRoutineId}
+        onClose={() => setIsCreateRoutineOpen(false)}
+        onSaved={() => refreshState()}
+        onOpenCreateExercise={() => setIsNewExerciseOpen(true)}
       />
 
       <ExerciseDetailModal

@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import {
   WorkoutSession,
   WorkoutExerciseWithDetails,
   ExerciseSet,
+  WorkoutRoutine,
 } from '../types/workout';
 import {
   getActiveWorkout,
@@ -17,6 +18,7 @@ import {
 interface WorkoutContextType {
   activeWorkout: WorkoutSession | null;
   startWorkout: (title?: string) => WorkoutSession;
+  startWorkoutWithRoutine: (routine: WorkoutRoutine) => WorkoutSession;
   finishWorkout: (notes?: string) => WorkoutSession | null;
   cancelWorkout: () => void;
   updateTitle: (title: string) => void;
@@ -40,6 +42,50 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const startWorkout = (title?: string): WorkoutSession => {
     const session = createNewWorkout(title);
+    setActiveWorkout(session);
+    return session;
+  };
+
+  const startWorkoutWithRoutine = (routine: WorkoutRoutine): WorkoutSession => {
+    const session = createNewWorkout(routine.title);
+    const exercises: WorkoutExerciseWithDetails[] = [];
+
+    routine.exerciseIds.forEach((exId, idx) => {
+      const exData = getExerciseById(exId);
+      if (!exData) return;
+      const lastPerf = getLastPerformance(exId);
+      const initialWeight = lastPerf?.sets[0]?.weight ?? 20;
+      const initialReps = lastPerf?.sets[0]?.reps ?? 10;
+      const weId = Date.now() + idx * 10;
+
+      const setsCount = lastPerf?.sets.length ? Math.min(lastPerf.sets.length, 3) : 3;
+      const sets: ExerciseSet[] = [];
+      for (let s = 1; s <= setsCount; s++) {
+        const prevSet = lastPerf?.sets[s - 1];
+        sets.push({
+          id: weId * 100 + s,
+          workoutExerciseId: weId,
+          setNumber: s,
+          setType: prevSet?.setType ?? 'normal',
+          weight: prevSet?.weight ?? initialWeight,
+          reps: prevSet?.reps ?? initialReps,
+          isCompleted: false,
+        });
+      }
+
+      exercises.push({
+        id: weId,
+        workoutId: session.id,
+        exerciseId: exId,
+        orderIndex: idx,
+        exercise: exData,
+        lastPerformance: lastPerf,
+        sets,
+      });
+    });
+
+    session.exercises = exercises;
+    saveActiveWorkout(session);
     setActiveWorkout(session);
     return session;
   };
@@ -204,6 +250,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       value={{
         activeWorkout,
         startWorkout,
+        startWorkoutWithRoutine,
         finishWorkout,
         cancelWorkout,
         updateTitle,

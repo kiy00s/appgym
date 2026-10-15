@@ -5,6 +5,7 @@ import {
   ExerciseHistoryEntry,
   SetType,
   WorkoutExerciseWithDetails,
+  WorkoutRoutine,
 } from '../types/workout';
 import { DEFAULT_EXERCISES } from '../constants/defaultExercises';
 import { calculate1RM, calculateVolume } from '../utils/calculations';
@@ -13,6 +14,7 @@ const STORAGE_KEYS = {
   EXERCISES: 'gym_exercises_v2',
   WORKOUTS: 'gym_workouts_v1',
   ACTIVE_WORKOUT: 'gym_active_workout_v1',
+  ROUTINES: 'gym_routines_v1',
 };
 
 // Initialize default exercises if not present, preserving any existing custom exercises
@@ -305,11 +307,151 @@ export function createNewWorkout(title?: string): WorkoutSession {
   return workout;
 }
 
+export const DEFAULT_ROUTINES_SPEC: {
+  id: string;
+  title: string;
+  description: string;
+  exerciseNames: string[];
+}[] = [
+  {
+    id: 'routine-push',
+    title: 'Push (Chest + Shoulders + Triceps)',
+    description: 'Chest pressing, shoulder overhead work, and triceps isolation.',
+    exerciseNames: [
+      'Flat Barbell Bench Press',
+      'Incline Dumbbell Press',
+      'Overhead Press (OHP)',
+      'Dumbbell Lateral Raises',
+      'Triceps Rope Pushdown',
+    ],
+  },
+  {
+    id: 'routine-pull',
+    title: 'Pull (Back + Rear Delts + Biceps)',
+    description: 'Heavy back compound pulls, rowing, and arm curling.',
+    exerciseNames: [
+      'Conventional Deadlift',
+      'Pull-ups (Overhand)',
+      'Bent-Over Barbell Row',
+      'Lat Pulldown',
+      'Barbell Biceps Curl',
+    ],
+  },
+  {
+    id: 'routine-legs',
+    title: 'Legs (Quads + Hamstrings + Calves)',
+    description: 'Squat pattern, posterior chain hinge, and calf extensions.',
+    exerciseNames: [
+      'Barbell Back Squat',
+      'Romanian Deadlift (RDL)',
+      'Leg Press',
+      'Lying Leg Curls',
+      'Standing Calf Raises',
+    ],
+  },
+  {
+    id: 'routine-fbw',
+    title: 'Full Body Workout (FBW)',
+    description: 'Comprehensive total-body workout hitting all major muscle groups.',
+    exerciseNames: [
+      'Barbell Back Squat',
+      'Flat Barbell Bench Press',
+      'Bent-Over Barbell Row',
+      'Overhead Press (OHP)',
+      'Plank',
+    ],
+  },
+];
+
+export function getDefaultRoutines(): WorkoutRoutine[] {
+  const allExercises = getExercises();
+  return DEFAULT_ROUTINES_SPEC.map((spec) => {
+    const ids: number[] = [];
+    spec.exerciseNames.forEach((name) => {
+      const match = allExercises.find((e) => e.name.toLowerCase() === name.toLowerCase());
+      if (match) ids.push(match.id);
+    });
+    return {
+      id: spec.id,
+      title: spec.title,
+      description: spec.description,
+      exerciseIds: ids,
+      isCustom: false,
+    };
+  });
+}
+
+export function getCustomRoutines(): WorkoutRoutine[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.ROUTINES);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getRoutines(): WorkoutRoutine[] {
+  const custom = getCustomRoutines();
+  const defaults = getDefaultRoutines();
+  return [...custom, ...defaults];
+}
+
+export function getRoutineById(id: string): WorkoutRoutine | undefined {
+  return getRoutines().find((r) => r.id === id);
+}
+
+export function saveCustomRoutine(data: {
+  id?: string;
+  title: string;
+  description?: string;
+  exerciseIds: number[];
+}): WorkoutRoutine {
+  const customList = getCustomRoutines();
+  const now = new Date().toISOString();
+
+  if (data.id && customList.some((r) => r.id === data.id)) {
+    // Update existing custom routine
+    const updated = customList.map((r) => {
+      if (r.id === data.id) {
+        return {
+          ...r,
+          title: data.title.trim(),
+          description: data.description?.trim() || undefined,
+          exerciseIds: data.exerciseIds,
+        };
+      }
+      return r;
+    });
+    localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(updated));
+    return updated.find((r) => r.id === data.id)!;
+  }
+
+  // Create new custom routine
+  const newRoutine: WorkoutRoutine = {
+    id: `custom-routine-${Date.now()}`,
+    title: data.title.trim(),
+    description: data.description?.trim() || undefined,
+    exerciseIds: data.exerciseIds,
+    isCustom: true,
+    createdAt: now,
+  };
+
+  customList.unshift(newRoutine);
+  localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(customList));
+  return newRoutine;
+}
+
+export function deleteCustomRoutine(id: string): void {
+  const customList = getCustomRoutines().filter((r) => r.id !== id);
+  localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(customList));
+}
+
 export function exportBackupJSON(): string {
   const data = {
     exercises: getExercises(),
     workouts: getCompletedWorkouts(),
-    version: '1.0',
+    routines: getCustomRoutines(),
+    version: '1.1',
     exportDate: new Date().toISOString(),
   };
   return JSON.stringify(data, null, 2);
@@ -323,6 +465,9 @@ export function importBackupJSON(jsonStr: string): boolean {
     }
     if (Array.isArray(parsed.workouts)) {
       localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(parsed.workouts));
+    }
+    if (Array.isArray(parsed.routines)) {
+      localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(parsed.routines));
     }
     return true;
   } catch {
