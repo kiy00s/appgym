@@ -405,6 +405,7 @@ export function saveCustomRoutine(data: {
   title: string;
   description?: string;
   exerciseIds: number[];
+  targetSets?: Record<number, number>;
 }): WorkoutRoutine {
   const customList = getCustomRoutines();
   const now = new Date().toISOString();
@@ -418,6 +419,7 @@ export function saveCustomRoutine(data: {
           title: data.title.trim(),
           description: data.description?.trim() || undefined,
           exerciseIds: data.exerciseIds,
+          targetSets: data.targetSets,
         };
       }
       return r;
@@ -432,6 +434,7 @@ export function saveCustomRoutine(data: {
     title: data.title.trim(),
     description: data.description?.trim() || undefined,
     exerciseIds: data.exerciseIds,
+    targetSets: data.targetSets,
     isCustom: true,
     createdAt: now,
   };

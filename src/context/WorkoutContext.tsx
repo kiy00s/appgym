@@ -58,7 +58,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const initialReps = lastPerf?.sets[0]?.reps ?? 10;
       const weId = Date.now() + idx * 10;
 
-      const setsCount = lastPerf?.sets.length ? Math.min(lastPerf.sets.length, 3) : 3;
+      const setsCount = routine.targetSets?.[exId] ?? (lastPerf?.sets.length ? Math.min(lastPerf.sets.length, 3) : 3);
       const sets: ExerciseSet[] = [];
       for (let s = 1; s <= setsCount; s++) {
         const prevSet = lastPerf?.sets[s - 1];

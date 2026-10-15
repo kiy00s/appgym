@@ -91,6 +91,7 @@ export interface WorkoutRoutine {
   title: string;
   description?: string;
   exerciseIds: number[];
+  targetSets?: Record<number, number>;
   isCustom: boolean;
   createdAt?: string;
 }

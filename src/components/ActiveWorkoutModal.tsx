@@ -121,22 +121,41 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleFinishPrompt}
-          style={{
-            backgroundColor: '#10B981',
-            color: '#0D0E12',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '7px 14px',
-            fontSize: '13px',
-            fontWeight: 800,
-            cursor: 'pointer',
-          }}
-        >
-          Finish
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            type="button"
+            onClick={handleCancelPrompt}
+            title="Cancel Workout"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+              color: '#EF4444',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '7px 11px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleFinishPrompt}
+            style={{
+              backgroundColor: '#10B981',
+              color: '#0D0E12',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '7px 13px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            Finish
+          </button>
+        </div>
       </div>
 
       {/* Live Summary Bar (Volume & Sets) */}

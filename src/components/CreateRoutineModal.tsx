@@ -23,6 +23,7 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [exerciseIds, setExerciseIds] = useState<number[]>([]);
+  const [targetSets, setTargetSets] = useState<Record<number, number>>({});
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isNewExerciseOpen, setIsNewExerciseOpen] = useState(false);
 
@@ -33,6 +34,7 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
         setTitle(routine.title);
         setDescription(routine.description || '');
         setExerciseIds(routine.exerciseIds || []);
+        setTargetSets(routine.targetSets || {});
         setIsPickerOpen(false);
         setIsNewExerciseOpen(false);
         return;
@@ -42,6 +44,7 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
     setTitle('');
     setDescription('');
     setExerciseIds([]);
+    setTargetSets({});
     setIsPickerOpen(false);
     setIsNewExerciseOpen(false);
   }, [routineId, isOpen]);
@@ -56,11 +59,28 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
   const handleAddExercise = (exerciseId: number) => {
     if (!exerciseIds.includes(exerciseId)) {
       setExerciseIds([...exerciseIds, exerciseId]);
+      setTargetSets((prev) => ({
+        ...prev,
+        [exerciseId]: prev[exerciseId] || 3,
+      }));
     }
   };
 
   const handleRemoveExercise = (exerciseId: number) => {
     setExerciseIds(exerciseIds.filter((id) => id !== exerciseId));
+    setTargetSets((prev) => {
+      const copy = { ...prev };
+      delete copy[exerciseId];
+      return copy;
+    });
+  };
+
+  const handleUpdateSets = (exerciseId: number, count: number) => {
+    const validCount = Math.max(1, Math.min(15, count));
+    setTargetSets((prev) => ({
+      ...prev,
+      [exerciseId]: validCount,
+    }));
   };
 
   const handleMoveUp = (index: number) => {
@@ -97,6 +117,7 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
       title: title.trim(),
       description: description.trim() || undefined,
       exerciseIds,
+      targetSets,
     });
 
     onSaved(saved);
@@ -216,12 +237,69 @@ export const CreateRoutineModal: React.FC<CreateRoutineModalProps> = ({
                       >
                         {idx + 1}
                       </span>
-                      <div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#F3F4F6' }}>
                           {ex.name}
                         </div>
                         <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>
                           {ex.category} • {ex.equipment}
+                        </div>
+
+                        {/* Planned sets selector */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF' }}>Planned sets:</span>
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              backgroundColor: '#20242D',
+                              borderRadius: '7px',
+                              padding: '1px 3px',
+                              gap: '2px',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateSets(ex.id, (targetSets[ex.id] ?? 3) - 1)}
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'none',
+                                border: 'none',
+                                color: '#9CA3AF',
+                                fontSize: '15px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              -
+                            </button>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#10B981', minWidth: '20px', textAlign: 'center' }}>
+                              {targetSets[ex.id] ?? 3}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateSets(ex.id, (targetSets[ex.id] ?? 3) + 1)}
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'none',
+                                border: 'none',
+                                color: '#9CA3AF',
+                                fontSize: '15px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

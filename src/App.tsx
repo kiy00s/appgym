@@ -177,6 +177,13 @@ export const App: React.FC = () => {
     return names.length > 0 ? names.join(' • ') : 'No exercises configured';
   };
 
+  const getTotalRoutineSets = (routine: WorkoutRoutine): number => {
+    if (routine.targetSets) {
+      return routine.exerciseIds.reduce((sum, id) => sum + (routine.targetSets?.[id] ?? 3), 0);
+    }
+    return routine.exerciseIds.length * 3;
+  };
+
   return (
     <div className="app-viewport">
       {/* Top safe notch spacer */}
@@ -599,7 +606,16 @@ export const App: React.FC = () => {
               {customRoutines.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {customRoutines.map((routine) => (
-                    <div key={routine.id} className="card" style={{ margin: 0, padding: '16px' }}>
+                    <div
+                      key={routine.id}
+                      className="card"
+                      onClick={() => handleOpenEditRoutine(routine.id)}
+                      style={{
+                        margin: 0,
+                        padding: '16px',
+                        cursor: 'pointer',
+                      }}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -620,25 +636,25 @@ export const App: React.FC = () => {
                           )}
                         </div>
 
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditRoutine(routine.id)}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span
                             style={{
-                              background: 'none',
-                              border: '1px solid #232733',
-                              borderRadius: '8px',
-                              padding: '6px',
-                              color: '#9CA3AF',
-                              cursor: 'pointer',
+                              fontSize: '11px',
+                              color: '#10B981',
+                              fontWeight: 700,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px',
                             }}
-                            title="Edit Routine"
                           >
-                            <Edit3 size={15} />
-                          </button>
+                            Edit <ChevronRight size={13} />
+                          </span>
                           <button
                             type="button"
-                            onClick={() => handleDeleteRoutine(routine.id, routine.title)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRoutine(routine.id, routine.title);
+                            }}
                             style={{
                               background: 'none',
                               border: '1px solid #232733',
@@ -666,13 +682,16 @@ export const App: React.FC = () => {
                           borderRadius: '8px',
                         }}
                       >
-                        <strong>{routine.exerciseIds.length} exercises:</strong> {getRoutineExerciseNames(routine)}
+                        <strong>{routine.exerciseIds.length} exercises • {getTotalRoutineSets(routine)} planned sets:</strong> {getRoutineExerciseNames(routine)}
                       </div>
 
                       <button
                         type="button"
                         className="btn-primary"
-                        onClick={() => handleStartRoutine(routine)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartRoutine(routine);
+                        }}
                         style={{ width: '100%', padding: '10px', fontSize: '14px' }}
                       >
                         <Play size={16} fill="#0D0E12" /> Start Workout with this Plan
@@ -752,7 +771,7 @@ export const App: React.FC = () => {
                         borderRadius: '8px',
                       }}
                     >
-                      <strong>{routine.exerciseIds.length} exercises:</strong> {getRoutineExerciseNames(routine)}
+                      <strong>{routine.exerciseIds.length} exercises • {getTotalRoutineSets(routine)} planned sets:</strong> {getRoutineExerciseNames(routine)}
                     </div>
 
                     <button
