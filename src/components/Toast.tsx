@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { CheckCircle2, X } from 'lucide-react';
 
 interface ToastProps {
@@ -13,36 +13,20 @@ export const Toast: React.FC<ToastProps> = ({
   isOpen,
   title,
   message,
-  durationMs = 4000,
+  durationMs = 5000,
   onClose,
 }) => {
-  const [isRendered, setIsRendered] = useState(isOpen);
-  const [isExiting, setIsExiting] = useState(false);
-
   useEffect(() => {
-    if (isOpen) {
-      setIsRendered(true);
-      setIsExiting(false);
+    if (!isOpen) return;
 
-      const timer = setTimeout(() => {
-        setIsExiting(true);
-        setTimeout(() => {
-          setIsRendered(false);
-          onClose();
-        }, 250);
-      }, durationMs);
+    const timer = setTimeout(() => {
+      onClose();
+    }, durationMs);
 
-      return () => clearTimeout(timer);
-    } else {
-      setIsExiting(true);
-      const exitTimer = setTimeout(() => {
-        setIsRendered(false);
-      }, 250);
-      return () => clearTimeout(exitTimer);
-    }
+    return () => clearTimeout(timer);
   }, [isOpen, durationMs, onClose]);
 
-  if (!isRendered) return null;
+  if (!isOpen) return null;
 
   return (
     <div
@@ -50,44 +34,41 @@ export const Toast: React.FC<ToastProps> = ({
       style={{
         position: 'fixed',
         top: 'calc(env(safe-area-inset-top, 20px) + 12px)',
-        left: '16px',
-        right: '16px',
-        zIndex: 9999,
+        left: '14px',
+        right: '14px',
+        zIndex: 99999,
         backgroundColor: '#191C24',
-        border: '1.5px solid #10B981',
+        border: '2px solid #10B981',
         borderRadius: '14px',
-        padding: '12px 14px',
+        padding: '14px 16px',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(16, 185, 129, 0.25)',
+        boxShadow: '0 12px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 185, 129, 0.3)',
         cursor: 'pointer',
-        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        opacity: isExiting ? 0 : 1,
-        transform: isExiting ? 'translateY(-12px) scale(0.96)' : 'translateY(0) scale(1)',
       }}
     >
       <div
         style={{
-          width: '34px',
-          height: '34px',
+          width: '36px',
+          height: '36px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}
       >
-        <CheckCircle2 size={20} color="#10B981" />
+        <CheckCircle2 size={22} color="#10B981" />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '14px', fontWeight: 800, color: '#F3F4F6' }}>
+        <div style={{ fontSize: '15px', fontWeight: 800, color: '#F3F4F6' }}>
           {title}
         </div>
         {message && (
-          <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '1px' }}>
+          <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>
             {message}
           </div>
         )}
@@ -102,16 +83,16 @@ export const Toast: React.FC<ToastProps> = ({
         style={{
           background: 'none',
           border: 'none',
-          color: '#6B7280',
+          color: '#9CA3AF',
           cursor: 'pointer',
-          padding: '4px',
+          padding: '6px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}
       >
-        <X size={16} />
+        <X size={18} />
       </button>
     </div>
   );

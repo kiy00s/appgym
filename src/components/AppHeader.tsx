@@ -225,34 +225,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onDataRestored, onOpenGitH
           )}
         </div>
       </header>
-
-      {/* Full-screen update transition overlay */}
-      {isRefreshing && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 99999,
-            backgroundColor: 'rgba(13, 14, 18, 0.92)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '14px',
-            padding: '20px',
-            textAlign: 'center',
-          }}
-        >
-          <RotateCw size={36} color="#10B981" className="spin-icon" />
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#F3F4F6' }}>
-            Updating GymTracker...
-          </div>
-          <div style={{ fontSize: '13px', color: '#9CA3AF', maxWidth: '280px' }}>
-            Clearing cache, updating Service Worker and reloading latest version
-          </div>
-        </div>
-      )}
     </>
   );
 };

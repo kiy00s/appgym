@@ -6,7 +6,7 @@ import {
   deleteCustomRoutine,
 } from './db/storage';
 import { WorkoutRoutine } from './types/workout';
-import { checkAndClearUpdateFlag } from './utils/pwa';
+import { isAppJustUpdated } from './utils/pwa';
 
 // Structural & Navigation Components
 import { AppHeader } from './components/AppHeader';
@@ -54,14 +54,7 @@ export const App: React.FC = () => {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
   const [pendingRoutinePrompt, setPendingRoutinePrompt] = useState<AddToRoutinePromptData | null>(null);
   const [isGitHubSyncOpen, setIsGitHubSyncOpen] = useState(false);
-  const [showUpdateToast, setShowUpdateToast] = useState(false);
-
-  // Check if app was just refreshed via Update App
-  useEffect(() => {
-    if (checkAndClearUpdateFlag()) {
-      setShowUpdateToast(true);
-    }
-  }, []);
+  const [showUpdateToast, setShowUpdateToast] = useState(() => isAppJustUpdated());
 
   // Workout Action Handlers
   const handleStartWorkout = (title?: string) => {

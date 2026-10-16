@@ -1,17 +1,27 @@
 /**
- * Checks if the app was just updated/refreshed, and clears the flag.
+ * Checks if the app was just updated via the Update button, and clears the flag.
  */
-export function checkAndClearUpdateFlag(): boolean {
+export function isAppJustUpdated(): boolean {
   try {
-    const inSession = sessionStorage.getItem('gymtracker_just_updated') === 'true';
-    const lastTime = Number(localStorage.getItem('gymtracker_just_updated_time') || '0');
-    const isRecent = inSession || (Date.now() - lastTime < 12000);
-
-    if (isRecent) {
+    // 1. Check URL query parameter ?updated=1
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('updated') === '1') {
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', cleanUrl);
+      localStorage.removeItem('gymtracker_just_updated');
       sessionStorage.removeItem('gymtracker_just_updated');
-      localStorage.removeItem('gymtracker_just_updated_time');
       return true;
     }
+
+    // 2. Check storage flags
+    const flag = localStorage.getItem('gymtracker_just_updated');
+    const sessionFlag = sessionStorage.getItem('gymtracker_just_updated');
+    if (flag || sessionFlag) {
+      localStorage.removeItem('gymtracker_just_updated');
+      sessionStorage.removeItem('gymtracker_just_updated');
+      return true;
+    }
+
     return false;
   } catch {
     return false;
@@ -20,12 +30,12 @@ export function checkAndClearUpdateFlag(): boolean {
 
 /**
  * Forces PWA refresh: marks update flag, updates Service Worker registrations,
- * clears cache storage, and reloads the current page.
+ * clears cache storage, and reloads the current page with a cachebuster.
  */
 export async function forceRefreshPWA(): Promise<void> {
   try {
-    sessionStorage.setItem('gymtracker_just_updated', 'true');
-    localStorage.setItem('gymtracker_just_updated_time', String(Date.now()));
+    localStorage.setItem('gymtracker_just_updated', '1');
+    sessionStorage.setItem('gymtracker_just_updated', '1');
 
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
@@ -40,6 +50,7 @@ export async function forceRefreshPWA(): Promise<void> {
   } catch (error) {
     console.error('Failed to clear caches/update SW:', error);
   } finally {
-    window.location.reload();
+    const cleanPath = window.location.pathname;
+    window.location.href = `${cleanPath}?updated=1&t=${Date.now()}`;
   }
 }
