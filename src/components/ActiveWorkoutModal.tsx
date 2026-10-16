@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { ChevronDown, Plus, Edit2, Check, Dumbbell, Trophy } from 'lucide-react';
+import { ChevronDown, Plus, Edit2, Check, Dumbbell, Trophy, Layers, X } from 'lucide-react';
 import { useWorkout } from '../context/WorkoutContext';
 import { WorkoutExerciseCard } from './WorkoutExerciseCard';
+import { RoutinePickerModal } from './RoutinePickerModal';
 import { calculateVolume } from '../utils/calculations';
+import { getRoutineById } from '../db/storage';
 
 interface ActiveWorkoutModalProps {
   isOpen: boolean;
@@ -17,15 +19,23 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
   onOpenExercisePicker,
   onSelectExercise,
 }) => {
-  const { activeWorkout, updateTitle, finishWorkout, cancelWorkout } = useWorkout();
+  const {
+    activeWorkout,
+    updateTitle,
+    finishWorkout,
+    cancelWorkout,
+    applyRoutineToActiveWorkout,
+  } = useWorkout();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(activeWorkout?.title ?? 'Workout');
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notes, setNotes] = useState('');
+  const [isRoutinePickerOpen, setIsRoutinePickerOpen] = useState(false);
 
   if (!isOpen || !activeWorkout) return null;
 
+  const linkedRoutine = activeWorkout.routineId ? getRoutineById(activeWorkout.routineId) : null;
   const allSets = activeWorkout.exercises?.flatMap((e) => e.sets) ?? [];
   const completedSets = allSets.filter((s) => s.isCompleted);
   const currentVolume = calculateVolume(allSets);
@@ -62,128 +72,215 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
   return (
     <div className="modal-overlay">
       {/* Top Header */}
-      <div className="modal-header">
-        <button
-          type="button"
-          onClick={onClose}
-          style={{ background: 'none', border: 'none', color: '#F3F4F6', cursor: 'pointer', padding: '4px' }}
-        >
-          <ChevronDown size={28} />
-        </button>
-
-        <div style={{ flex: 1, textAlign: 'center', margin: '0 8px' }}>
-          {isEditingTitle ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <input
-                type="text"
-                autoFocus
-                value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
-                style={{
-                  backgroundColor: '#20242D',
-                  color: '#F3F4F6',
-                  border: '1px solid #10B981',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
-                  fontSize: '15px',
-                  fontWeight: 700,
-                  textAlign: 'center',
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleSaveTitle}
-                style={{ background: 'none', border: 'none', color: '#10B981', cursor: 'pointer' }}
-              >
-                <Check size={20} />
-              </button>
-            </div>
-          ) : (
-            <div
-              onClick={() => {
-                setEditedTitle(activeWorkout.title);
-                setIsEditingTitle(true);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontSize: '16px', fontWeight: 800, color: '#F3F4F6' }}>
-                {activeWorkout.title}
-              </span>
-              <Edit2 size={13} color="#6B7280" />
-            </div>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <button
-            type="button"
-            onClick={handleCancelPrompt}
-            title="Cancel Workout"
-            style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.12)',
-              color: '#EF4444',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '8px',
-              padding: '7px 11px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
+      {isEditingTitle ? (
+        <div className="modal-header" style={{ gap: '8px' }}>
+          <input
+            type="text"
+            autoFocus
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSaveTitle();
+              if (e.key === 'Escape') setIsEditingTitle(false);
             }}
-          >
-            Cancel
-          </button>
+            placeholder="Workout Title"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              backgroundColor: '#20242D',
+              color: '#F3F4F6',
+              border: '1.5px solid #10B981',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              fontSize: '15px',
+              fontWeight: 700,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
           <button
             type="button"
-            onClick={handleFinishPrompt}
+            onClick={handleSaveTitle}
             style={{
               backgroundColor: '#10B981',
               color: '#0D0E12',
               border: 'none',
               borderRadius: '8px',
-              padding: '7px 13px',
+              padding: '8px 14px',
               fontSize: '13px',
               fontWeight: 800,
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              flexShrink: 0,
             }}
           >
-            Finish
+            <Check size={16} /> Save
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsEditingTitle(false)}
+            style={{
+              background: 'none',
+              border: '1px solid #282C37',
+              color: '#9CA3AF',
+              borderRadius: '8px',
+              padding: '8px 10px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            Cancel
           </button>
         </div>
-      </div>
+      ) : (
+        <div className="modal-header">
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#F3F4F6', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
+          >
+            <ChevronDown size={28} />
+          </button>
 
-      {/* Live Summary Bar (Volume & Sets) */}
+          <div
+            onClick={() => {
+              setEditedTitle(activeWorkout.title);
+              setIsEditingTitle(true);
+            }}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              textAlign: 'center',
+              margin: '0 8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '16px',
+                fontWeight: 800,
+                color: '#F3F4F6',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {activeWorkout.title}
+            </span>
+            <Edit2 size={13} color="#6B7280" style={{ flexShrink: 0 }} />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={handleCancelPrompt}
+              title="Cancel Workout"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                color: '#EF4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '8px',
+                padding: '7px 11px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleFinishPrompt}
+              style={{
+                backgroundColor: '#10B981',
+                color: '#0D0E12',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '7px 13px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              Finish
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Live Summary Bar (Volume & Sets & Plan) */}
       <div
         style={{
           display: 'flex',
           backgroundColor: '#16181F',
-          padding: '12px 16px',
+          padding: '10px 14px',
           borderBottom: '1px solid #232733',
+          alignItems: 'center',
         }}
       >
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: '17px', fontWeight: 800, color: '#F3F4F6' }}>
+          <div style={{ fontSize: '15px', fontWeight: 800, color: '#F3F4F6' }}>
             {currentVolume} kg
           </div>
-          <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
-            TOTAL VOLUME
+          <div style={{ fontSize: '9px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
+            VOLUME
           </div>
         </div>
 
-        <div style={{ width: '1px', backgroundColor: '#232733' }} />
+        <div style={{ width: '1px', height: '22px', backgroundColor: '#232733' }} />
 
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: '17px', fontWeight: 800, color: '#10B981' }}>
+          <div style={{ fontSize: '15px', fontWeight: 800, color: '#10B981' }}>
             {completedSets.length}/{allSets.length}
           </div>
-          <div style={{ fontSize: '10px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
-            SETS COMPLETED
+          <div style={{ fontSize: '9px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
+            SETS DONE
+          </div>
+        </div>
+
+        <div style={{ width: '1px', height: '22px', backgroundColor: '#232733' }} />
+
+        <div style={{ flex: 1.3, textAlign: 'center', minWidth: 0, paddingLeft: '4px' }}>
+          <button
+            type="button"
+            onClick={() => setIsRoutinePickerOpen(true)}
+            style={{
+              background: linkedRoutine ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+              border: linkedRoutine ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid #282C37',
+              borderRadius: '7px',
+              padding: '3px 8px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Layers size={12} color={linkedRoutine ? '#10B981' : '#9CA3AF'} style={{ flexShrink: 0 }} />
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: linkedRoutine ? '#10B981' : '#9CA3AF',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {linkedRoutine ? linkedRoutine.title : 'Select Plan'}
+            </span>
+          </button>
+          <div style={{ fontSize: '9px', fontWeight: 800, color: '#6B7280', marginTop: '2px', letterSpacing: '0.5px' }}>
+            ROUTINE
           </div>
         </div>
       </div>
@@ -199,26 +296,57 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
             />
           ))
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6B7280' }}>
-            <Dumbbell size={48} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
-            <p style={{ fontSize: '17px', fontWeight: 800, color: '#F3F4F6', marginBottom: '6px' }}>
+          <div style={{ textAlign: 'center', padding: '30px 16px', color: '#6B7280' }}>
+            <Dumbbell size={44} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+            <p style={{ fontSize: '18px', fontWeight: 800, color: '#F3F4F6', marginBottom: '6px' }}>
               Workout is empty
             </p>
-            <p style={{ fontSize: '13px' }}>
-              Tap the button below to add your first exercise.
+            <p style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '20px' }}>
+              Choose a workout plan to load your exercises, or add exercises manually.
             </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => setIsRoutinePickerOpen(true)}
+                style={{ width: '100%', padding: '13px', fontSize: '14px' }}
+              >
+                <Layers size={18} /> Choose a Workout Plan
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={onOpenExercisePicker}
+                style={{ width: '100%', padding: '12px', fontSize: '13px' }}
+              >
+                <Plus size={16} /> Add Exercise Manually
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Buttons */}
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={onOpenExercisePicker}
-          style={{ width: '100%', marginTop: '10px' }}
-        >
-          <Plus size={20} /> Add Exercise
-        </button>
+        {/* Buttons when exercises exist */}
+        {activeWorkout.exercises && activeWorkout.exercises.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={onOpenExercisePicker}
+              style={{ flex: 1.2, padding: '12px' }}
+            >
+              <Plus size={18} /> Add Exercise
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setIsRoutinePickerOpen(true)}
+              style={{ flex: 1, padding: '12px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <Layers size={16} color="#10B981" />
+              <span>{activeWorkout.routineId ? 'Change Plan' : 'Select Plan'}</span>
+            </button>
+          </div>
+        )}
 
         <button
           type="button"
@@ -316,6 +444,15 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
           </div>
         </div>
       )}
+
+      <RoutinePickerModal
+        isOpen={isRoutinePickerOpen}
+        currentRoutineId={activeWorkout.routineId}
+        onClose={() => setIsRoutinePickerOpen(false)}
+        onSelectRoutine={(routine) => {
+          applyRoutineToActiveWorkout(routine);
+        }}
+      />
     </div>
   );
 };

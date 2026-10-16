@@ -31,6 +31,7 @@ interface WorkoutContextType {
   removeSet: (workoutExerciseId: number, setId: number) => void;
   toggleSetCompleted: (workoutExerciseId: number, setId: number) => void;
   syncActiveWorkoutWithRoutine: (routine: WorkoutRoutine) => void;
+  applyRoutineToActiveWorkout: (routine: WorkoutRoutine) => void;
   addExerciseToActiveRoutine: (exerciseId: number, targetSetsCount?: number) => void;
   updateActiveRoutineExerciseSets: (exerciseId: number, targetSetsCount: number) => void;
   refreshState: () => void;
@@ -358,6 +359,62 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, []);
 
+  const applyRoutineToActiveWorkout = useCallback((routine: WorkoutRoutine) => {
+    setActiveWorkout((currentWorkout) => {
+      if (!currentWorkout) return null;
+
+      const exercises: WorkoutExerciseWithDetails[] = [];
+      routine.exerciseIds.forEach((exId, idx) => {
+        const exData = getExerciseById(exId);
+        if (!exData) return;
+        const lastPerf = getLastPerformance(exId);
+        const initialWeight = lastPerf?.sets[0]?.weight ?? 20;
+        const initialReps = lastPerf?.sets[0]?.reps ?? 10;
+        const weId = Date.now() + idx * 10;
+
+        const setsCount = routine.targetSets?.[exId] ?? (lastPerf?.sets.length ? Math.min(lastPerf.sets.length, 3) : 3);
+        const sets: ExerciseSet[] = [];
+        for (let s = 1; s <= setsCount; s++) {
+          const prevSet = lastPerf?.sets[s - 1];
+          sets.push({
+            id: weId * 100 + s,
+            workoutExerciseId: weId,
+            setNumber: s,
+            setType: prevSet?.setType ?? 'normal',
+            weight: prevSet?.weight ?? initialWeight,
+            reps: prevSet?.reps ?? initialReps,
+            isCompleted: false,
+          });
+        }
+
+        exercises.push({
+          id: weId,
+          workoutId: currentWorkout.id,
+          exerciseId: exId,
+          orderIndex: idx,
+          exercise: exData,
+          lastPerformance: lastPerf,
+          sets,
+        });
+      });
+
+      // Preserve any previous exercises that already have completed sets
+      const existingCompleted = (currentWorkout.exercises || []).filter(
+        (e) => e.sets.some((s) => s.isCompleted) && !routine.exerciseIds.includes(e.exerciseId)
+      );
+      const allExercisesList = [...exercises, ...existingCompleted];
+
+      const updated: WorkoutSession = {
+        ...currentWorkout,
+        title: routine.title,
+        routineId: routine.id,
+        exercises: allExercisesList,
+      };
+      saveActiveWorkout(updated);
+      return updated;
+    });
+  }, []);
+
   const addExerciseToActiveRoutine = useCallback(
     (exerciseId: number, targetSetsCount?: number) => {
       if (!activeWorkout?.routineId) return;
@@ -396,6 +453,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         removeSet,
         toggleSetCompleted,
         syncActiveWorkoutWithRoutine,
+        applyRoutineToActiveWorkout,
         addExerciseToActiveRoutine,
         updateActiveRoutineExerciseSets,
         refreshState,
