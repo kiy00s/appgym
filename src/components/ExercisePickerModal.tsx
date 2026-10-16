@@ -2,16 +2,7 @@ import React, { useState } from 'react';
 import { X, Search, Plus } from 'lucide-react';
 import { getExercises } from '../db/storage';
 import { Exercise } from '../types/workout';
-
-const CATEGORIES = [
-  'All',
-  'Chest',
-  'Back',
-  'Legs',
-  'Shoulders',
-  'Arms',
-  'Core',
-];
+import { EXERCISE_CATEGORIES } from '../constants/defaultExercises';
 
 interface ExercisePickerModalProps {
   isOpen: boolean;
@@ -113,7 +104,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
             WebkitOverflowScrolling: 'touch',
           }}
         >
-          {CATEGORIES.map((cat) => {
+          {EXERCISE_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat;
             return (
               <button

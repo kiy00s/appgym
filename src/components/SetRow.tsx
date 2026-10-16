@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, Trash2 } from 'lucide-react';
 import { ExerciseSet, SetType } from '../types/workout';
+import { Colors } from '../constants/theme';
 
 interface SetRowProps {
   set: ExerciseSet;
@@ -10,6 +11,8 @@ interface SetRowProps {
   onToggleComplete: () => void;
 }
 
+const SET_TYPE_CYCLE: SetType[] = ['normal', 'warmup', 'drop', 'failure'];
+
 export const SetRow: React.FC<SetRowProps> = ({
   set,
   previousPerformanceText,
@@ -18,22 +21,21 @@ export const SetRow: React.FC<SetRowProps> = ({
   onToggleComplete,
 }) => {
   const cycleSetType = () => {
-    const order: SetType[] = ['normal', 'warmup', 'drop', 'failure'];
-    const currentIndex = order.indexOf(set.setType);
-    const nextType = order[(currentIndex + 1) % order.length];
+    const currentIndex = SET_TYPE_CYCLE.indexOf(set.setType);
+    const nextType = SET_TYPE_CYCLE[(currentIndex + 1) % SET_TYPE_CYCLE.length];
     onUpdate({ setType: nextType });
   };
 
   const getSetBadge = () => {
     switch (set.setType) {
       case 'warmup':
-        return { text: 'W', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.15)' };
+        return { text: 'W', color: Colors.warmupTag, bg: 'rgba(245, 158, 11, 0.15)' };
       case 'drop':
-        return { text: 'D', color: '#EC4899', bg: 'rgba(236, 72, 153, 0.15)' };
+        return { text: 'D', color: Colors.dropTag, bg: 'rgba(236, 72, 153, 0.15)' };
       case 'failure':
-        return { text: 'F', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.15)' };
+        return { text: 'F', color: Colors.failureTag, bg: 'rgba(239, 68, 68, 0.15)' };
       default:
-        return { text: String(set.setNumber), color: '#9CA3AF', bg: '#20242D' };
+        return { text: String(set.setNumber), color: Colors.textSecondary, bg: Colors.surfaceLight };
     }
   };
 

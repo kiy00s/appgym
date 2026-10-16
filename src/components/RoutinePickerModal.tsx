@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Layers, Search, Play, Dumbbell } from 'lucide-react';
 import { WorkoutRoutine } from '../types/workout';
 import { getRoutines, getExercises } from '../db/storage';
+import { getRoutineExerciseNames, getTotalRoutineSets } from '../utils/routineUtils';
 
 interface RoutinePickerModalProps {
   isOpen: boolean;
@@ -33,20 +34,6 @@ export const RoutinePickerModal: React.FC<RoutinePickerModalProps> = ({
     );
     return titleMatch || descMatch || exMatch;
   });
-
-  const getRoutineExerciseNames = (routine: WorkoutRoutine): string => {
-    const names = routine.exerciseIds
-      .map((id) => allExercises.find((e) => e.id === id)?.name)
-      .filter((n): n is string => !!n);
-    return names.length > 0 ? names.join(' • ') : 'No exercises configured';
-  };
-
-  const getTotalRoutineSets = (routine: WorkoutRoutine): number => {
-    if (routine.targetSets) {
-      return routine.exerciseIds.reduce((sum, id) => sum + (routine.targetSets?.[id] ?? 3), 0);
-    }
-    return routine.exerciseIds.length * 3;
-  };
 
   return (
     <div className="modal-overlay" style={{ zIndex: 140 }}>

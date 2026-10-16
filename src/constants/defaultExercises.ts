@@ -69,3 +69,16 @@ export const DEFAULT_EXERCISES: DefaultExerciseDef[] = [
   { name: 'Machine Ab Crunch', category: 'Core', equipment: 'Machine' },
   { name: 'Ab Wheel Rollout', category: 'Core', equipment: 'Bodyweight' },
 ];
+
+export const EXERCISE_CATEGORIES = [
+  'All',
+  'Chest',
+  'Back',
+  'Legs',
+  'Shoulders',
+  'Arms',
+  'Core',
+] as const;
+
+export type ExerciseCategoryFilter = typeof EXERCISE_CATEGORIES[number];
+
