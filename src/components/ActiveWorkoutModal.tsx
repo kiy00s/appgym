@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Plus, Edit2, Check, Dumbbell, Trophy, Layers, X } from 'lucide-react';
 import { useWorkout } from '../context/WorkoutContext';
 import { WorkoutExerciseCard } from './WorkoutExerciseCard';
@@ -33,6 +33,24 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
   const [notes, setNotes] = useState('');
   const [isRoutinePickerOpen, setIsRoutinePickerOpen] = useState(false);
 
+  // Reset all temporary editing states whenever workout changes or modal opens
+  useEffect(() => {
+    if (activeWorkout) {
+      setEditedTitle(activeWorkout.title);
+    }
+    setIsEditingTitle(false);
+    setShowNotesModal(false);
+    setNotes('');
+    setIsRoutinePickerOpen(false);
+  }, [activeWorkout?.id, isOpen]);
+
+  // Keep editedTitle synced with activeWorkout.title when not in active editing mode
+  useEffect(() => {
+    if (activeWorkout && !isEditingTitle) {
+      setEditedTitle(activeWorkout.title);
+    }
+  }, [activeWorkout?.title, isEditingTitle]);
+
   if (!isOpen || !activeWorkout) return null;
 
   const linkedRoutine = activeWorkout.routineId ? getRoutineById(activeWorkout.routineId) : null;
@@ -43,8 +61,25 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
   const handleSaveTitle = () => {
     if (editedTitle.trim()) {
       updateTitle(editedTitle.trim());
+    } else if (activeWorkout) {
+      setEditedTitle(activeWorkout.title);
     }
     setIsEditingTitle(false);
+  };
+
+  const handleCancelEditTitle = () => {
+    if (activeWorkout) {
+      setEditedTitle(activeWorkout.title);
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleClose = () => {
+    if (activeWorkout) {
+      setEditedTitle(activeWorkout.title);
+    }
+    setIsEditingTitle(false);
+    onClose();
   };
 
   const handleFinishPrompt = () => {
@@ -58,12 +93,15 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
 
   const handleConfirmFinish = () => {
     setShowNotesModal(false);
+    setIsEditingTitle(false);
     finishWorkout(notes);
     onClose();
   };
 
   const handleCancelPrompt = () => {
     if (confirm('Are you sure you want to cancel and delete this workout?')) {
+      setIsEditingTitle(false);
+      setShowNotesModal(false);
       cancelWorkout();
       onClose();
     }
@@ -81,7 +119,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
             onChange={(e) => setEditedTitle(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSaveTitle();
-              if (e.key === 'Escape') setIsEditingTitle(false);
+              if (e.key === 'Escape') handleCancelEditTitle();
             }}
             placeholder="Workout Title"
             style={{
@@ -120,7 +158,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setIsEditingTitle(false)}
+            onClick={handleCancelEditTitle}
             style={{
               background: 'none',
               border: '1px solid #282C37',
@@ -140,7 +178,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
         <div className="modal-header">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             style={{ background: 'none', border: 'none', color: '#F3F4F6', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
           >
             <ChevronDown size={28} />

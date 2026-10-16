@@ -1058,6 +1058,7 @@ export const App: React.FC = () => {
 
       {/* Modals */}
       <ActiveWorkoutModal
+        key={activeWorkout ? `workout-${activeWorkout.id}` : 'no-active-workout'}
         isOpen={isActiveModalOpen}
         onClose={() => setIsActiveModalOpen(false)}
         onOpenExercisePicker={() => setIsExercisePickerOpen(true)}
