@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkout } from './context/WorkoutContext';
 import {
   getExercises,
@@ -6,10 +6,12 @@ import {
   deleteCustomRoutine,
 } from './db/storage';
 import { WorkoutRoutine } from './types/workout';
+import { checkAndClearUpdateFlag } from './utils/pwa';
 
 // Structural & Navigation Components
 import { AppHeader } from './components/AppHeader';
 import { BottomNav, AppTab } from './components/BottomNav';
+import { Toast } from './components/Toast';
 
 // Tab Views
 import { WorkoutTab } from './components/tabs/WorkoutTab';
@@ -52,6 +54,14 @@ export const App: React.FC = () => {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
   const [pendingRoutinePrompt, setPendingRoutinePrompt] = useState<AddToRoutinePromptData | null>(null);
   const [isGitHubSyncOpen, setIsGitHubSyncOpen] = useState(false);
+  const [showUpdateToast, setShowUpdateToast] = useState(false);
+
+  // Check if app was just refreshed via Update App
+  useEffect(() => {
+    if (checkAndClearUpdateFlag()) {
+      setShowUpdateToast(true);
+    }
+  }, []);
 
   // Workout Action Handlers
   const handleStartWorkout = (title?: string) => {
@@ -247,6 +257,13 @@ export const App: React.FC = () => {
         isOpen={isGitHubSyncOpen}
         onClose={() => setIsGitHubSyncOpen(false)}
         onDataRestored={refreshState}
+      />
+
+      <Toast
+        isOpen={showUpdateToast}
+        title="App Updated!"
+        message="Successfully refreshed to the latest version."
+        onClose={() => setShowUpdateToast(false)}
       />
     </div>
   );
