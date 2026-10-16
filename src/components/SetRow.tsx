@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { Trash2, Plus, Minus } from 'lucide-react';
 import { ExerciseSet, SetType } from '../types/workout';
 import { Colors } from '../constants/theme';
 
@@ -8,7 +8,6 @@ interface SetRowProps {
   previousPerformanceText?: string;
   onUpdate: (fields: Partial<ExerciseSet>) => void;
   onDelete: () => void;
-  onToggleComplete: () => void;
 }
 
 const SET_TYPE_CYCLE: SetType[] = ['normal', 'warmup', 'drop', 'failure'];
@@ -18,7 +17,6 @@ export const SetRow: React.FC<SetRowProps> = ({
   previousPerformanceText,
   onUpdate,
   onDelete,
-  onToggleComplete,
 }) => {
   const cycleSetType = () => {
     const currentIndex = SET_TYPE_CYCLE.indexOf(set.setType);
@@ -41,36 +39,64 @@ export const SetRow: React.FC<SetRowProps> = ({
 
   const badge = getSetBadge();
 
+  const handleStepWeight = (delta: number) => {
+    const current = Number(set.weight) || 0;
+    const next = Math.max(0, Math.round((current + delta) * 10) / 10);
+    onUpdate({ weight: next, isCompleted: true });
+  };
+
+  const handleStepReps = (delta: number) => {
+    const current = Number(set.reps) || 0;
+    const next = Math.max(0, current + delta);
+    onUpdate({ reps: next, isCompleted: true });
+  };
+
+  const moveCursorToEnd = (
+    e: React.FocusEvent<HTMLInputElement> | React.MouseEvent<HTMLInputElement>
+  ) => {
+    const input = e.currentTarget;
+    const len = input.value.length;
+    setTimeout(() => {
+      try {
+        input.setSelectionRange(len, len);
+      } catch {
+        // ignore
+      }
+    }, 10);
+  };
+
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '6px 4px',
+        padding: '5px 2px',
         borderRadius: '8px',
         margin: '3px 0',
-        backgroundColor: set.isCompleted ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+        backgroundColor: '#16181F',
+        border: '1px solid #1F2430',
       }}
     >
       {/* Type badge */}
       <button
         type="button"
         onClick={cycleSetType}
-        title="Click to change set type (Normal, Warmup, Drop set, Failure)"
+        title="Set type (Normal, Warmup, Drop set, Failure)"
         style={{
-          width: '32px',
-          height: '32px',
+          width: '26px',
+          height: '26px',
           borderRadius: '6px',
           backgroundColor: badge.bg,
           color: badge.color,
           border: 'none',
           fontWeight: 800,
-          fontSize: '13px',
+          fontSize: '11px',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
+          marginLeft: '4px',
         }}
       >
         {badge.text}
@@ -79,89 +105,197 @@ export const SetRow: React.FC<SetRowProps> = ({
       {/* Previous weight & reps */}
       <div
         style={{
-          flex: 1.3,
+          flex: 1,
           textAlign: 'center',
-          fontSize: '12px',
+          fontSize: '11px',
           color: '#6B7280',
-          padding: '0 4px',
+          padding: '0 2px',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}
+        title={previousPerformanceText}
       >
         {previousPerformanceText || '—'}
       </div>
 
-      {/* Weight input */}
-      <div style={{ flex: 1.1, padding: '0 3px' }}>
-        <input
-          type="number"
-          step="any"
-          value={set.weight > 0 ? set.weight : ''}
-          placeholder="0"
-          onChange={(e) => {
-            const val = parseFloat(e.target.value);
-            onUpdate({ weight: isNaN(val) ? 0 : val });
-          }}
-          style={{
-            width: '100%',
-            backgroundColor: set.isCompleted ? 'rgba(255, 255, 255, 0.05)' : '#20242D',
-            color: '#F3F4F6',
-            border: set.isCompleted ? '1px solid transparent' : '1px solid #232733',
-            borderRadius: '6px',
-            padding: '7px 4px',
-            textAlign: 'center',
-            fontSize: '15px',
-            fontWeight: 700,
-          }}
-        />
-      </div>
-
-      {/* Reps input */}
-      <div style={{ flex: 1.1, padding: '0 3px' }}>
-        <input
-          type="number"
-          value={set.reps > 0 ? set.reps : ''}
-          placeholder="0"
-          onChange={(e) => {
-            const val = parseInt(e.target.value, 10);
-            onUpdate({ reps: isNaN(val) ? 0 : val });
-          }}
-          style={{
-            width: '100%',
-            backgroundColor: set.isCompleted ? 'rgba(255, 255, 255, 0.05)' : '#20242D',
-            color: '#F3F4F6',
-            border: set.isCompleted ? '1px solid transparent' : '1px solid #232733',
-            borderRadius: '6px',
-            padding: '7px 4px',
-            textAlign: 'center',
-            fontSize: '15px',
-            fontWeight: 700,
-          }}
-        />
-      </div>
-
-      {/* Complete toggle */}
-      <button
-        type="button"
-        onClick={onToggleComplete}
+      {/* Weight Stepper (KG) */}
+      <div
         style={{
-          width: '34px',
-          height: '34px',
-          borderRadius: '6px',
-          backgroundColor: set.isCompleted ? '#10B981' : '#20242D',
-          border: set.isCompleted ? 'none' : '1px solid #232733',
-          color: set.isCompleted ? '#0D0E12' : '#6B7280',
-          cursor: 'pointer',
+          flex: 1.4,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          marginLeft: '4px',
-          flexShrink: 0,
+          gap: '2px',
+          padding: '0 2px',
         }}
       >
-        <Check size={18} strokeWidth={3} />
-      </button>
+        <button
+          type="button"
+          onClick={() => handleStepWeight(-2.5)}
+          title="-2.5 kg"
+          style={{
+            width: '24px',
+            height: '30px',
+            borderRadius: '5px',
+            backgroundColor: '#20242D',
+            border: '1px solid #282C37',
+            color: '#9CA3AF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            padding: 0,
+            flexShrink: 0,
+            touchAction: 'manipulation',
+          }}
+        >
+          <Minus size={12} strokeWidth={2.5} />
+        </button>
+
+        <input
+          type="text"
+          inputMode="decimal"
+          value={set.weight > 0 ? set.weight : ''}
+          placeholder="0"
+          onFocus={moveCursorToEnd}
+          onClick={moveCursorToEnd}
+          onChange={(e) => {
+            const raw = e.target.value.replace(',', '.');
+            if (raw === '') {
+              onUpdate({ weight: 0, isCompleted: true });
+              return;
+            }
+            const val = parseFloat(raw);
+            onUpdate({ weight: isNaN(val) ? 0 : val, isCompleted: true });
+          }}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            backgroundColor: '#0D0E12',
+            color: '#F3F4F6',
+            border: '1px solid #282C37',
+            borderRadius: '5px',
+            padding: '6px 2px',
+            textAlign: 'center',
+            fontSize: '13px',
+            fontWeight: 700,
+            outline: 'none',
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={() => handleStepWeight(2.5)}
+          title="+2.5 kg"
+          style={{
+            width: '24px',
+            height: '30px',
+            borderRadius: '5px',
+            backgroundColor: '#20242D',
+            border: '1px solid #282C37',
+            color: '#10B981',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            padding: 0,
+            flexShrink: 0,
+            touchAction: 'manipulation',
+          }}
+        >
+          <Plus size={12} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* Reps Stepper (REPS) */}
+      <div
+        style={{
+          flex: 1.2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '2px',
+          padding: '0 2px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => handleStepReps(-1)}
+          title="-1 rep"
+          style={{
+            width: '24px',
+            height: '30px',
+            borderRadius: '5px',
+            backgroundColor: '#20242D',
+            border: '1px solid #282C37',
+            color: '#9CA3AF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            padding: 0,
+            flexShrink: 0,
+            touchAction: 'manipulation',
+          }}
+        >
+          <Minus size={12} strokeWidth={2.5} />
+        </button>
+
+        <input
+          type="text"
+          inputMode="numeric"
+          value={set.reps > 0 ? set.reps : ''}
+          placeholder="0"
+          onFocus={moveCursorToEnd}
+          onClick={moveCursorToEnd}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === '') {
+              onUpdate({ reps: 0, isCompleted: true });
+              return;
+            }
+            const val = parseInt(raw, 10);
+            onUpdate({ reps: isNaN(val) ? 0 : Math.max(0, val), isCompleted: true });
+          }}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            backgroundColor: '#0D0E12',
+            color: '#F3F4F6',
+            border: '1px solid #282C37',
+            borderRadius: '5px',
+            padding: '6px 2px',
+            textAlign: 'center',
+            fontSize: '13px',
+            fontWeight: 700,
+            outline: 'none',
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={() => handleStepReps(1)}
+          title="+1 rep"
+          style={{
+            width: '24px',
+            height: '30px',
+            borderRadius: '5px',
+            backgroundColor: '#20242D',
+            border: '1px solid #282C37',
+            color: '#10B981',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            padding: 0,
+            flexShrink: 0,
+            touchAction: 'manipulation',
+          }}
+        >
+          <Plus size={12} strokeWidth={2.5} />
+        </button>
+      </div>
 
       {/* Delete button */}
       <button
@@ -172,19 +306,22 @@ export const SetRow: React.FC<SetRowProps> = ({
           }
         }}
         style={{
+          width: '24px',
+          height: '30px',
           background: 'none',
           border: 'none',
           color: '#6B7280',
-          padding: '6px',
           cursor: 'pointer',
-          marginLeft: '2px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          padding: 0,
           flexShrink: 0,
+          marginRight: '2px',
         }}
+        title="Delete set"
       >
-        <Trash2 size={16} />
+        <Trash2 size={14} />
       </button>
     </div>
   );

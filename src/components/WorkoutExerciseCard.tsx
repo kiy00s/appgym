@@ -61,10 +61,7 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
           marginBottom: '14px',
         }}
       >
-        <div
-          onClick={() => onSelectExercise(item.exercise.id)}
-          style={{ cursor: 'pointer', flex: 1, marginRight: '10px' }}
-        >
+        <div style={{ flex: 1, marginRight: '10px' }}>
           <div
             style={{
               fontSize: '17px',
@@ -196,12 +193,11 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
           letterSpacing: '0.5px',
         }}
       >
-        <div style={{ width: '32px', textAlign: 'center' }}>SET</div>
-        <div style={{ flex: 1.3, textAlign: 'center' }}>PREVIOUS</div>
-        <div style={{ flex: 1.1, textAlign: 'center' }}>KG</div>
-        <div style={{ flex: 1.1, textAlign: 'center' }}>REPS</div>
-        <div style={{ width: '34px', textAlign: 'center', marginLeft: '4px' }}>DONE</div>
-        <div style={{ width: '28px' }}></div>
+        <div style={{ width: '26px', textAlign: 'center', marginLeft: '4px' }}>SET</div>
+        <div style={{ flex: 1, textAlign: 'center' }}>PREVIOUS</div>
+        <div style={{ flex: 1.4, textAlign: 'center' }}>KG</div>
+        <div style={{ flex: 1.2, textAlign: 'center' }}>REPS</div>
+        <div style={{ width: '24px', marginRight: '2px' }}></div>
       </div>
 
       {/* Sets */}
@@ -218,7 +214,6 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
             previousPerformanceText={prevText}
             onUpdate={(fields) => set.id && updateSet(item.id, set.id, fields)}
             onDelete={() => set.id && removeSet(item.id, set.id)}
-            onToggleComplete={() => set.id && toggleSetCompleted(item.id, set.id)}
           />
         );
       })}

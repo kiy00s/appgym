@@ -15,7 +15,7 @@ export function calculate1RM(weight: number, reps: number): number {
  */
 export function calculateVolume(sets: ExerciseSet[]): number {
   return sets
-    .filter((s) => s.isCompleted)
+    .filter((s) => s.isCompleted || (s.reps > 0 && s.weight > 0))
     .reduce((total, s) => total + (s.weight || 0) * (s.reps || 0), 0);
 }
 

@@ -270,8 +270,17 @@ export function finishActiveWorkout(notes?: string): WorkoutSession | null {
   const active = getActiveWorkout();
   if (!active) return null;
 
+  const completedExercises = active.exercises?.map((we) => ({
+    ...we,
+    sets: we.sets.map((s) => ({
+      ...s,
+      isCompleted: s.isCompleted || s.reps > 0,
+    })),
+  }));
+
   const completed: WorkoutSession = {
     ...active,
+    exercises: completedExercises,
     status: 'completed',
     endTime: new Date().toISOString(),
     notes: notes?.trim() || null,

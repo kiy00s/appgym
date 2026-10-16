@@ -55,7 +55,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
 
   const linkedRoutine = activeWorkout.routineId ? getRoutineById(activeWorkout.routineId) : null;
   const allSets = activeWorkout.exercises?.flatMap((e) => e.sets) ?? [];
-  const completedSets = allSets.filter((s) => s.isCompleted);
+  const completedSets = allSets.filter((s) => s.isCompleted || s.reps > 0);
   const currentVolume = calculateVolume(allSets);
 
   const handleSaveTitle = () => {
