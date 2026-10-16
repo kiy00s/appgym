@@ -56,6 +56,7 @@ export interface WorkoutExerciseWithDetails {
 export interface WorkoutSession {
   id: number;
   title: string;
+  routineId?: string;
   startTime: string;
   endTime?: string | null;
   status: 'in_progress' | 'completed' | 'cancelled';

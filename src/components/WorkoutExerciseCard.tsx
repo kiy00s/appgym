@@ -1,8 +1,9 @@
-import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Trash2, Check, BookmarkPlus } from 'lucide-react';
 import { WorkoutExerciseWithDetails } from '../types/workout';
 import { SetRow } from './SetRow';
 import { useWorkout } from '../context/WorkoutContext';
+import { getRoutineById } from '../db/storage';
 
 interface WorkoutExerciseCardProps {
   item: WorkoutExerciseWithDetails;
@@ -13,7 +14,33 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
   item,
   onSelectExercise,
 }) => {
-  const { removeExercise, addSet, updateSet, removeSet, toggleSetCompleted } = useWorkout();
+  const {
+    activeWorkout,
+    removeExercise,
+    addSet,
+    updateSet,
+    removeSet,
+    toggleSetCompleted,
+    updateActiveRoutineExerciseSets,
+    addExerciseToActiveRoutine,
+  } = useWorkout();
+
+  const [savedFeedback, setSavedFeedback] = useState(false);
+
+  const routine = activeWorkout?.routineId ? getRoutineById(activeWorkout.routineId) : null;
+  const isExerciseInRoutine = routine ? routine.exerciseIds.includes(item.exercise.id) : false;
+  const plannedSets = isExerciseInRoutine && routine ? (routine.targetSets?.[item.exercise.id] ?? 3) : null;
+  const currentSets = item.sets.length;
+
+  const handleSyncSets = (setsCount: number) => {
+    if (isExerciseInRoutine) {
+      updateActiveRoutineExerciseSets(item.exercise.id, setsCount);
+    } else {
+      addExerciseToActiveRoutine(item.exercise.id, setsCount);
+    }
+    setSavedFeedback(true);
+    setTimeout(() => setSavedFeedback(false), 2000);
+  };
 
   return (
     <div
@@ -48,9 +75,91 @@ export const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({
           >
             {item.exercise.name}
           </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
             <span className="badge-pill">{item.exercise.category}</span>
             <span className="badge-pill">{item.exercise.equipment}</span>
+
+            {/* Routine Plan sync indicator / button */}
+            {routine && (
+              <>
+                {savedFeedback ? (
+                  <span
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      border: '1px solid #10B981',
+                      borderRadius: '6px',
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#10B981',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <Check size={12} /> Plan updated to {currentSets} sets!
+                  </span>
+                ) : isExerciseInRoutine && plannedSets !== null && plannedSets !== currentSets ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSyncSets(currentSets);
+                    }}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      borderRadius: '6px',
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#10B981',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title={`Click to update plan "${routine.title}" to ${currentSets} sets`}
+                  >
+                    <BookmarkPlus size={12} /> Plan: {plannedSets}s • Set to {currentSets}s
+                  </button>
+                ) : isExerciseInRoutine && plannedSets !== null ? (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#6B7280',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Plan: {plannedSets} sets
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSyncSets(currentSets);
+                    }}
+                    style={{
+                      background: 'rgba(6, 182, 212, 0.12)',
+                      border: '1px solid rgba(6, 182, 212, 0.3)',
+                      borderRadius: '6px',
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#06B6D4',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title={`Add ${item.exercise.name} to plan "${routine.title}"`}
+                  >
+                    <BookmarkPlus size={12} /> + Add to plan ({currentSets}s)
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
 

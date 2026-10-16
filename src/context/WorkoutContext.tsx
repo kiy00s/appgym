@@ -13,6 +13,8 @@ import {
   cancelActiveWorkout,
   getLastPerformance,
   getExerciseById,
+  addExerciseToRoutine,
+  updateRoutineExerciseSets,
 } from '../db/storage';
 
 interface WorkoutContextType {
@@ -28,6 +30,9 @@ interface WorkoutContextType {
   updateSet: (workoutExerciseId: number, setId: number, updates: Partial<ExerciseSet>) => void;
   removeSet: (workoutExerciseId: number, setId: number) => void;
   toggleSetCompleted: (workoutExerciseId: number, setId: number) => void;
+  syncActiveWorkoutWithRoutine: (routine: WorkoutRoutine) => void;
+  addExerciseToActiveRoutine: (exerciseId: number, targetSetsCount?: number) => void;
+  updateActiveRoutineExerciseSets: (exerciseId: number, targetSetsCount: number) => void;
   refreshState: () => void;
 }
 
@@ -47,7 +52,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const startWorkoutWithRoutine = (routine: WorkoutRoutine): WorkoutSession => {
-    const session = createNewWorkout(routine.title);
+    const session = createNewWorkout(routine.title, routine.id);
     const exercises: WorkoutExerciseWithDetails[] = [];
 
     routine.exerciseIds.forEach((exId, idx) => {
@@ -245,6 +250,136 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateSet(workoutExerciseId, setId, { isCompleted: !targetSet.isCompleted });
   };
 
+  const syncActiveWorkoutWithRoutine = useCallback((routine: WorkoutRoutine) => {
+    setActiveWorkout((currentWorkout) => {
+      if (!currentWorkout || currentWorkout.routineId !== routine.id) {
+        return currentWorkout;
+      }
+
+      const existingExercises = currentWorkout.exercises || [];
+      const updatedExercises: WorkoutExerciseWithDetails[] = [];
+      const exerciseMap = new Map<number, WorkoutExerciseWithDetails>();
+      existingExercises.forEach((we) => exerciseMap.set(we.exerciseId, we));
+
+      routine.exerciseIds.forEach((exId, idx) => {
+        const existing = exerciseMap.get(exId);
+        const plannedSetsCount = routine.targetSets?.[exId] ?? 3;
+
+        if (existing) {
+          // Adjust sets if plannedSetsCount changed, keeping completed sets safe
+          const sets = [...existing.sets];
+          const completedCount = sets.filter((s) => s.isCompleted).length;
+
+          if (sets.length < plannedSetsCount) {
+            const lastSet = sets[sets.length - 1];
+            const lastPerf = getLastPerformance(exId);
+            const weight = lastSet?.weight ?? lastPerf?.sets[0]?.weight ?? 20;
+            const reps = lastSet?.reps ?? lastPerf?.sets[0]?.reps ?? 10;
+            for (let s = sets.length + 1; s <= plannedSetsCount; s++) {
+              sets.push({
+                id: existing.id * 100 + s,
+                workoutExerciseId: existing.id,
+                setNumber: s,
+                setType: 'normal',
+                weight,
+                reps,
+                isCompleted: false,
+              });
+            }
+          } else if (sets.length > plannedSetsCount) {
+            while (
+              sets.length > plannedSetsCount &&
+              sets.length > completedCount &&
+              !sets[sets.length - 1].isCompleted
+            ) {
+              sets.pop();
+            }
+            sets.forEach((s, i) => {
+              s.setNumber = i + 1;
+            });
+          }
+
+          updatedExercises.push({
+            ...existing,
+            orderIndex: idx,
+            sets,
+          });
+          exerciseMap.delete(exId);
+        } else {
+          // New exercise added to routine: instantiate for this active workout
+          const exData = getExerciseById(exId);
+          if (exData) {
+            const lastPerf = getLastPerformance(exId);
+            const initialWeight = lastPerf?.sets[0]?.weight ?? 20;
+            const initialReps = lastPerf?.sets[0]?.reps ?? 10;
+            const weId = Date.now() + idx * 10;
+            const sets: ExerciseSet[] = [];
+            for (let s = 1; s <= plannedSetsCount; s++) {
+              const prevSet = lastPerf?.sets[s - 1];
+              sets.push({
+                id: weId * 100 + s,
+                workoutExerciseId: weId,
+                setNumber: s,
+                setType: prevSet?.setType ?? 'normal',
+                weight: prevSet?.weight ?? initialWeight,
+                reps: prevSet?.reps ?? initialReps,
+                isCompleted: false,
+              });
+            }
+            updatedExercises.push({
+              id: weId,
+              workoutId: currentWorkout.id,
+              exerciseId: exId,
+              orderIndex: idx,
+              exercise: exData,
+              lastPerformance: lastPerf,
+              sets,
+            });
+          }
+        }
+      });
+
+      // Preserve any exercise not in routine that has at least one completed set
+      exerciseMap.forEach((we) => {
+        if (we.sets.some((s) => s.isCompleted)) {
+          updatedExercises.push({
+            ...we,
+            orderIndex: updatedExercises.length,
+          });
+        }
+      });
+
+      const updatedSession: WorkoutSession = {
+        ...currentWorkout,
+        exercises: updatedExercises,
+      };
+      saveActiveWorkout(updatedSession);
+      return updatedSession;
+    });
+  }, []);
+
+  const addExerciseToActiveRoutine = useCallback(
+    (exerciseId: number, targetSetsCount?: number) => {
+      if (!activeWorkout?.routineId) return;
+      const updated = addExerciseToRoutine(activeWorkout.routineId, exerciseId, targetSetsCount);
+      if (updated) {
+        refreshState();
+      }
+    },
+    [activeWorkout, refreshState]
+  );
+
+  const updateActiveRoutineExerciseSets = useCallback(
+    (exerciseId: number, targetSetsCount: number) => {
+      if (!activeWorkout?.routineId) return;
+      const updated = updateRoutineExerciseSets(activeWorkout.routineId, exerciseId, targetSetsCount);
+      if (updated) {
+        refreshState();
+      }
+    },
+    [activeWorkout, refreshState]
+  );
+
   return (
     <WorkoutContext.Provider
       value={{
@@ -260,6 +395,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateSet,
         removeSet,
         toggleSetCompleted,
+        syncActiveWorkoutWithRoutine,
+        addExerciseToActiveRoutine,
+        updateActiveRoutineExerciseSets,
         refreshState,
       }}
     >

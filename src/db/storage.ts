@@ -289,7 +289,7 @@ export function cancelActiveWorkout(): void {
   saveActiveWorkout(null);
 }
 
-export function createNewWorkout(title?: string): WorkoutSession {
+export function createNewWorkout(title?: string, routineId?: string): WorkoutSession {
   const dateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -298,6 +298,7 @@ export function createNewWorkout(title?: string): WorkoutSession {
   const workout: WorkoutSession = {
     id: Date.now(),
     title: title?.trim() || `Workout - ${dateStr}`,
+    routineId,
     startTime: new Date().toISOString(),
     status: 'in_progress',
     exercises: [],
@@ -392,7 +393,8 @@ export function getCustomRoutines(): WorkoutRoutine[] {
 
 export function getRoutines(): WorkoutRoutine[] {
   const custom = getCustomRoutines();
-  const defaults = getDefaultRoutines();
+  const customIds = new Set(custom.map((r) => r.id));
+  const defaults = getDefaultRoutines().filter((d) => !customIds.has(d.id));
   return [...custom, ...defaults];
 }
 
@@ -426,6 +428,20 @@ export function saveCustomRoutine(data: {
     });
     localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(updated));
     return updated.find((r) => r.id === data.id)!;
+  } else if (data.id) {
+    // Save routine (e.g. customized preset) under the provided ID
+    const newRoutine: WorkoutRoutine = {
+      id: data.id,
+      title: data.title.trim(),
+      description: data.description?.trim() || undefined,
+      exerciseIds: data.exerciseIds,
+      targetSets: data.targetSets,
+      isCustom: true,
+      createdAt: now,
+    };
+    customList.unshift(newRoutine);
+    localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(customList));
+    return newRoutine;
   }
 
   // Create new custom routine
@@ -442,6 +458,54 @@ export function saveCustomRoutine(data: {
   customList.unshift(newRoutine);
   localStorage.setItem(STORAGE_KEYS.ROUTINES, JSON.stringify(customList));
   return newRoutine;
+}
+
+export function addExerciseToRoutine(
+  routineId: string,
+  exerciseId: number,
+  targetSetsCount?: number
+): WorkoutRoutine | null {
+  const routine = getRoutineById(routineId);
+  if (!routine) return null;
+
+  const exerciseIds = routine.exerciseIds.includes(exerciseId)
+    ? routine.exerciseIds
+    : [...routine.exerciseIds, exerciseId];
+
+  const targetSets = {
+    ...(routine.targetSets || {}),
+    [exerciseId]: targetSetsCount || routine.targetSets?.[exerciseId] || 3,
+  };
+
+  return saveCustomRoutine({
+    id: routine.id,
+    title: routine.title,
+    description: routine.description,
+    exerciseIds,
+    targetSets,
+  });
+}
+
+export function updateRoutineExerciseSets(
+  routineId: string,
+  exerciseId: number,
+  targetSetsCount: number
+): WorkoutRoutine | null {
+  const routine = getRoutineById(routineId);
+  if (!routine) return null;
+
+  const targetSets = {
+    ...(routine.targetSets || {}),
+    [exerciseId]: targetSetsCount,
+  };
+
+  return saveCustomRoutine({
+    id: routine.id,
+    title: routine.title,
+    description: routine.description,
+    exerciseIds: routine.exerciseIds,
+    targetSets,
+  });
 }
 
 export function deleteCustomRoutine(id: string): void {

@@ -25,6 +25,7 @@ import {
   getRoutines,
   getCustomRoutines,
   getDefaultRoutines,
+  getRoutineById,
   deleteCustomRoutine,
   exportBackupJSON,
   importBackupJSON,
@@ -37,10 +38,19 @@ import { NewExerciseModal } from './components/NewExerciseModal';
 import { ExerciseDetailModal } from './components/ExerciseDetailModal';
 import { WorkoutDetailModal } from './components/WorkoutDetailModal';
 import { CreateRoutineModal } from './components/CreateRoutineModal';
+import { AddToRoutineModal, AddToRoutinePromptData } from './components/AddToRoutineModal';
 
 export const App: React.FC = () => {
-  const { activeWorkout, startWorkout, startWorkoutWithRoutine, addExercise, refreshState } =
-    useWorkout();
+  const {
+    activeWorkout,
+    startWorkout,
+    startWorkoutWithRoutine,
+    addExercise,
+    syncActiveWorkoutWithRoutine,
+    addExerciseToActiveRoutine,
+    updateActiveRoutineExerciseSets,
+    refreshState,
+  } = useWorkout();
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'workout' | 'routines' | 'exercises' | 'history'>('workout');
@@ -53,6 +63,7 @@ export const App: React.FC = () => {
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+  const [pendingRoutinePrompt, setPendingRoutinePrompt] = useState<AddToRoutinePromptData | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Exercises screen state
@@ -94,6 +105,20 @@ export const App: React.FC = () => {
 
   const handleAddExerciseFromPicker = (exerciseId: number) => {
     addExercise(exerciseId);
+    if (activeWorkout?.routineId) {
+      const routine = getRoutineById(activeWorkout.routineId);
+      const exData = allExercises.find((e) => e.id === exerciseId);
+      if (routine && exData) {
+        setPendingRoutinePrompt({
+          exerciseId,
+          exerciseName: exData.name,
+          routineId: routine.id,
+          routineTitle: routine.title,
+          isAlreadyInRoutine: routine.exerciseIds.includes(exerciseId),
+          initialSets: routine.targetSets?.[exerciseId] ?? 3,
+        });
+      }
+    }
   };
 
   const handleOpenNewRoutine = () => {
@@ -1052,6 +1077,20 @@ export const App: React.FC = () => {
         onCreated={(id) => {
           if (activeWorkout) {
             addExercise(id);
+            if (activeWorkout.routineId) {
+              const routine = getRoutineById(activeWorkout.routineId);
+              const exData = getExercises().find((e) => e.id === id);
+              if (routine && exData) {
+                setPendingRoutinePrompt({
+                  exerciseId: id,
+                  exerciseName: exData.name,
+                  routineId: routine.id,
+                  routineTitle: routine.title,
+                  isAlreadyInRoutine: routine.exerciseIds.includes(id),
+                  initialSets: routine.targetSets?.[id] ?? 3,
+                });
+              }
+            }
           }
           refreshState();
         }}
@@ -1061,7 +1100,10 @@ export const App: React.FC = () => {
         isOpen={isCreateRoutineOpen}
         routineId={editingRoutineId}
         onClose={() => setIsCreateRoutineOpen(false)}
-        onSaved={() => refreshState()}
+        onSaved={(savedRoutine) => {
+          syncActiveWorkoutWithRoutine(savedRoutine);
+          refreshState();
+        }}
       />
 
       <ExerciseDetailModal
@@ -1076,6 +1118,22 @@ export const App: React.FC = () => {
         onClose={() => setSelectedWorkoutId(null)}
         onDeleted={() => refreshState()}
         onSelectExercise={(id) => setSelectedExerciseId(id)}
+      />
+
+      <AddToRoutineModal
+        isOpen={!!pendingRoutinePrompt}
+        data={pendingRoutinePrompt}
+        onClose={() => setPendingRoutinePrompt(null)}
+        onConfirm={({ addToRoutine, targetSetsCount }) => {
+          if (addToRoutine && pendingRoutinePrompt) {
+            if (pendingRoutinePrompt.isAlreadyInRoutine) {
+              updateActiveRoutineExerciseSets(pendingRoutinePrompt.exerciseId, targetSetsCount);
+            } else {
+              addExerciseToActiveRoutine(pendingRoutinePrompt.exerciseId, targetSetsCount);
+            }
+          }
+          setPendingRoutinePrompt(null);
+        }}
       />
     </div>
   );
