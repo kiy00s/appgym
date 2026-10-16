@@ -1,14 +1,14 @@
-# GymTracker - Offline-First Workout & Progressive Overload Tracker (PWA)
+# GymTracker - Offline-First Mobile Workout & Routine Tracker (PWA)
 
-A lightweight, modern **Progressive Web App (PWA)** built with **React**, **Vite**, and **TypeScript**, designed for iPhone and mobile viewports.
+A lightweight, modern, mobile-first **Progressive Web App (PWA)** built with **React**, **Vite**, and **TypeScript**, tailored for iPhone viewports (*Add to Home Screen*) and ready for free hosting on **GitHub Pages**.
 
-It operates **100% offline**, installs directly to the iOS Home Screen without the App Store, and is ready for free hosting on **GitHub Pages**.
+It operates **100% offline**, features a full **Workout Plans / Routines** creator, automated **Private GitHub Cloud Sync**, and requires **zero App Store installation**.
 
 ---
 
 ## 📱 How to Install on iOS (iPhone)
 
-Once the application is deployed to your GitHub Pages (e.g., `https://<your-username>.github.io/appgym/`):
+Once deployed to your GitHub Pages (e.g., `https://<your-username>.github.io/appgym/`):
 
 1. Open the URL in **Safari** on your iPhone.
 2. Tap the **Share** button (the square icon with an upward arrow at the bottom of the screen).
@@ -16,45 +16,69 @@ Once the application is deployed to your GitHub Pages (e.g., `https://<your-user
 4. Tap **Add** in the top-right corner.
 
 > [!TIP]
-> A green dumbbell icon will appear on your iPhone Home Screen. Tapping it opens the app in **standalone full-screen mode** (without Safari address bars), with full offline support at the gym without requiring cellular reception or Wi-Fi.
+> A dumbbell icon will appear on your iPhone Home Screen. Tapping it opens GymTracker in **standalone full-screen mode** (without Safari address bars or browser chrome), with complete offline functionality at the gym even without cellular reception or Wi-Fi.
 
 ---
 
 ## ✨ Features
 
-- **100% Offline-First (PWA + Service Worker + LocalStorage):**
-  - All workout logs, sets, and personal records (PRs) persist locally on your device.
-  - Zero server lag, no login required, no cloud dependencies.
-- **Comprehensive Exercise Catalog:**
-  - 35+ default strength and hypertrophy exercises categorized by muscle groups (Chest, Back, Legs, Shoulders, Arms, Abs) and equipment (Barbell, Dumbbell, Machine, Cable, Bodyweight).
-  - Instant live search and category filtering.
-  - Ability to create custom exercises with equipment tags and execution notes.
-- **Active Workout Session Logging:**
-  - Real-time logging of weight (kg) and reps.
-  - **Previous Benchmark Guidance (*POPRZEDNIO*):** Displays previous workout metrics for progressive overload tracking.
-  - Set categorization: Normal, Warmup (W), Drop Set (D), Failure (F).
-  - Quick set cloning (automatically copies last set's weight and reps).
-- **Strength Analytics & 1RM Calculator:**
-  - Automatic estimation of One-Rep Max (**1RM**) using the validated Epley formula.
-  - All-time Personal Record (**PR**) tracking per exercise.
-  - Total workout volume (tonnage in kg) and completed sets summary.
-- **Data Backup & Restore:**
-  - One-click JSON backup export and import directly from the application header.
+### 🏋️ Active Workout Logging
+- **Live Set Tracking:** Log weight (kg), reps, and mark sets completed with one tap.
+- **Previous Performance Guidance:** Displays previous session metrics for progressive overload tracking (*"Last: 80 kg × 8"*).
+- **Set Types:** Quickly cycle set types: Normal, Warmup (**W**), Drop Set (**D**), and Failure (**F**).
+- **Instant Plan Switching:** Start an empty workout and load or change a workout plan on the fly.
+- **In-Workout Plan Sync:** When adding an exercise or adjusting sets during a routine-based workout, choose whether to update the underlying workout plan.
+- **Safe Workout Cancel & Finish:** Quick access to finish or cancel at the top and bottom of the session, with workout notes and volume stats.
+
+### 📋 Custom Workout Plans (Routines)
+- **Dedicated Plans Tab:** Manage both custom routines and standard built-in presets (Push, Pull, Legs, Upper, Lower).
+- **Custom Plan Builder:** Create routines with custom titles, descriptions, exercise order, and target sets per exercise (1–15 sets).
+- **Tap-to-Edit:** Tap anywhere on a plan card to quickly inspect and modify its exercises and planned sets.
+- **Exercise Reordering:** Move exercises up and down to match gym floor flow.
+
+### ☁️ Private GitHub Cloud Sync (Gist)
+- **100% Private Cloud Backup:** Back up all workouts, routines, and custom exercises to a **Secret Gist** on your personal GitHub account.
+- **Automatic Background Sync:** Automatically updates your private Gist in the background whenever you finish a workout.
+- **One-Tap Restore:** If Safari cache is wiped or you switch to a new phone, enter your token and restore your entire workout history in seconds.
+- **Cross-Device Access:** Access your raw JSON backup directly on your PC at [gist.github.com](https://gist.github.com).
+
+### 🔄 PWA In-App Updates & Offline Cache
+- **Instant In-App Update:** Tap the Settings gear icon &rarr; **Update App** to fetch the latest code from GitHub Pages and clear stale assets.
+- **Confirmation Toast:** Sleek confirmation popup (*"App Updated! Running latest version"*) appears right after refreshing.
+- **Offline Reliability:** Service Worker caches static assets while `localStorage` keeps all your workout data isolated and safe.
+
+### 📊 Strength Analytics & Exercise Catalog
+- **1RM Calculator:** Real-time One-Rep Max (**1RM**) estimation using the validated Epley formula.
+- **All-Time PR Tracking:** Tracks personal records (PRs) per exercise.
+- **Summary Metrics:** Total volume (tonnage in kg or tons), workout counts, and workouts completed this month.
+- **35+ Built-in Exercises:** Categorized by muscle groups (Chest, Back, Legs, Shoulders, Arms, Core) and equipment (Barbell, Dumbbell, Cable, Machine, Bodyweight).
+- **Custom Exercises:** Add new exercises with custom equipment and notes.
 
 ---
 
-## 🚀 GitHub Pages Deployment Setup
+## 🔒 Private GitHub Cloud Sync Setup
 
-This repository includes an automated GitHub Actions deployment workflow located at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+1. Go to [github.com/settings/tokens](https://github.com/settings/tokens).
+2. Click **Generate new token** &rarr; select **Generate new token (classic)**.
+3. In the **Note** field, enter `GymTracker Backup`.
+4. Under **Expiration**, select `No expiration` (or desired timeframe).
+5. In scopes, check **only one box: `[x] gist`** (no repository or private code access needed).
+6. Click **Generate token** and copy the `ghp_...` token.
+7. Open GymTracker on your phone &rarr; tap **Settings (gear icon)** &rarr; **GitHub Cloud Sync** &rarr; paste the token and tap **Backup Now to GitHub**.
 
-### Enabling GitHub Pages in 2 Clicks:
-1. Navigate to your repository on [GitHub.com](https://github.com).
-2. Click **Settings** (gear icon on the top repository navigation).
-3. In the left sidebar, click **Pages**.
-4. Under **Build and deployment** > **Source**, change the dropdown to:
+---
+
+## 🚀 GitHub Pages Deployment
+
+The repository includes an automated GitHub Actions deployment workflow located at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+### Enabling GitHub Pages:
+1. Open your repository on [GitHub.com](https://github.com).
+2. Go to **Settings** &rarr; **Pages** (in the left sidebar).
+3. Under **Build and deployment** &gt; **Source**, select:
    👉 **GitHub Actions**
-5. Go to the **Actions** tab and re-run the deployment workflow (or push a new commit via GitHub Desktop).
-6. Your live PWA will be published at `https://<your-username>.github.io/appgym/`.
+4. Push a new commit (or manually trigger the workflow in the **Actions** tab).
+5. Your live app is available at `https://<your-username>.github.io/appgym/`.
 
 ---
 
@@ -63,7 +87,8 @@ This repository includes an automated GitHub Actions deployment workflow located
 - **Framework:** React 19 + TypeScript
 - **Bundler:** Vite
 - **Icons:** Lucide React
-- **Storage:** Offline browser storage (`localStorage` + Service Worker caching)
+- **Architecture:** Clean Code / Modular Tab views (`WorkoutTab`, `RoutinesTab`, `ExercisesTab`, `HistoryTab`)
+- **Storage:** Browser `localStorage` + Service Worker Cache + Private GitHub Gist API
 
 ```bash
 # Install dependencies
