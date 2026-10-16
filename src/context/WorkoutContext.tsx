@@ -16,6 +16,7 @@ import {
   addExerciseToRoutine,
   updateRoutineExerciseSets,
 } from '../db/storage';
+import { getGitHubSyncConfig, syncToGitHubGist } from '../utils/githubSync';
 
 interface WorkoutContextType {
   activeWorkout: WorkoutSession | null;
@@ -99,6 +100,16 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const finishWorkout = (notes?: string): WorkoutSession | null => {
     const completed = finishActiveWorkout(notes);
     setActiveWorkout(null);
+    if (completed) {
+      try {
+        const { autoSync, token } = getGitHubSyncConfig();
+        if (autoSync && token) {
+          syncToGitHubGist().catch((err) => console.log('Background GitHub sync failed:', err));
+        }
+      } catch (e) {
+        console.log('Background auto-sync check error:', e);
+      }
+    }
     return completed;
   };
 

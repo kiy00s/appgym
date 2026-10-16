@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Dumbbell, Settings, RotateCw, Download, Upload } from 'lucide-react';
+import { Dumbbell, Settings, RotateCw, Download, Upload, Cloud } from 'lucide-react';
 import { forceRefreshPWA } from '../utils/pwa';
 import { downloadBackupFile, promptUploadBackupFile } from '../utils/backup';
 
 interface AppHeaderProps {
   onDataRestored?: () => void;
+  onOpenGitHubSync?: () => void;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ onDataRestored }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ onDataRestored, onOpenGitHubSync }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -138,6 +139,33 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onDataRestored }) => {
                 </button>
 
                 <div style={{ height: '1px', backgroundColor: '#232733', margin: '4px 0' }} />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSettingsOpen(false);
+                    onOpenGitHubSync?.();
+                  }}
+                  className="dropdown-item"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#F3F4F6',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
+                >
+                  <Cloud size={15} color="#10B981" />
+                  <span>GitHub Cloud Sync</span>
+                </button>
 
                 <button
                   type="button"

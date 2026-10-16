@@ -25,6 +25,7 @@ import { ExerciseDetailModal } from './components/ExerciseDetailModal';
 import { WorkoutDetailModal } from './components/WorkoutDetailModal';
 import { CreateRoutineModal } from './components/CreateRoutineModal';
 import { AddToRoutineModal, AddToRoutinePromptData } from './components/AddToRoutineModal';
+import { GitHubSyncModal } from './components/GitHubSyncModal';
 
 export const App: React.FC = () => {
   const {
@@ -50,6 +51,7 @@ export const App: React.FC = () => {
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
   const [pendingRoutinePrompt, setPendingRoutinePrompt] = useState<AddToRoutinePromptData | null>(null);
+  const [isGitHubSyncOpen, setIsGitHubSyncOpen] = useState(false);
 
   // Workout Action Handlers
   const handleStartWorkout = (title?: string) => {
@@ -115,7 +117,10 @@ export const App: React.FC = () => {
   return (
     <div className="app-viewport">
       {/* Top Header with Title and Settings */}
-      <AppHeader onDataRestored={refreshState} />
+      <AppHeader
+        onDataRestored={refreshState}
+        onOpenGitHubSync={() => setIsGitHubSyncOpen(true)}
+      />
 
       {/* Main Tab Content */}
       <main style={{ padding: '16px', flex: 1 }}>
@@ -236,6 +241,12 @@ export const App: React.FC = () => {
           }
           setPendingRoutinePrompt(null);
         }}
+      />
+
+      <GitHubSyncModal
+        isOpen={isGitHubSyncOpen}
+        onClose={() => setIsGitHubSyncOpen(false)}
+        onDataRestored={refreshState}
       />
     </div>
   );
